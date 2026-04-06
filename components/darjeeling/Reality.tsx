@@ -1,415 +1,365 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
-import { motion, useInView, useScroll, useTransform } from 'framer-motion'
-import gsap from 'gsap'
+import { useEffect, useRef } from 'react'
+import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
-// ─── Raw evidence photos — swap with real Instagram photos when available ──
-// All Darjeeling / hill station / mountain environment imagery
-const PHOTOS = [
+// 7 polluted Darjeeling placeholder images — swap these for real photos
+const IMAGES = [
   {
-    src: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=800&q=80',
-    alt: 'Plastic waste on Darjeeling hillside trail',
+    src: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80',
+    location: 'Mall Road, Darjeeling',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1604187351574-c75ca79f5807?w=1600&q=80',
+    location: 'Chowrasta Square',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=1600&q=80',
+    location: 'Lebong Valley',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1567870729671-f8c16e2ab5e5?w=1600&q=80',
     location: 'Tiger Hill Road',
   },
   {
-    src: 'https://images.unsplash.com/photo-1604187351574-c75ca79f5807?w=800&q=80',
-    alt: 'Overflowing waste bins on mountain path',
-    location: 'Chowrasta',
+    src: 'https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?w=1600&q=80',
+    location: 'Ghoom Monastery Road',
   },
   {
-    src: 'https://images.unsplash.com/photo-1567113463300-102a7eb3cb26?w=800&q=80',
-    alt: 'Garbage on tea garden slopes',
-    location: 'Happy Valley',
+    src: 'https://images.unsplash.com/photo-1605600659908-0ef719419d41?w=1600&q=80',
+    location: 'Batasia Loop Area',
   },
   {
-    src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
-    alt: 'Pristine Darjeeling hills — what we fight for',
-    location: 'Kanchenjunga view point',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&q=80',
-    alt: 'Litter on forest trail near Darjeeling',
-    location: 'Senchal Wildlife Sanctuary',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
-    alt: 'Waste dumped near mountain stream',
-    location: 'Rangeet Valley',
+    src: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1600&q=80',
+    location: 'Singamari Forest Trail',
   },
 ]
 
-// Individual photo card
-function PhotoCard({
-  photo,
-  index,
-}: {
-  photo: (typeof PHOTOS)[0]
-  index: number
-}) {
-  const ref = useRef<HTMLDivElement>(null)
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 60, rotate: index % 2 === 0 ? -1.5 : 1.5 }}
-      whileInView={{ opacity: 1, y: 0, rotate: index % 2 === 0 ? -0.8 : 0.8 }}
-      viewport={{ once: true, margin: '-60px' }}
-      transition={{
-        duration: 1.1,
-        delay: index * 0.08,
-        ease: [0.25, 0.46, 0.45, 0.94],
-      }}
-      whileHover={{ scale: 1.02, rotate: 0, zIndex: 10 }}
-      style={{
-        position: 'relative',
-        flexShrink: 0,
-        cursor: 'default',
-        transition: 'box-shadow 0.4s',
-      }}
-    >
-      <div
-        style={{
-          overflow: 'hidden',
-          width: 'clamp(200px, 28vw, 340px)',
-          aspectRatio: index % 3 === 0 ? '3/4' : index % 3 === 1 ? '4/3' : '1/1',
-        }}
-      >
-        <motion.img
-          src={photo.src}
-          alt={photo.alt}
-          whileHover={{ scale: 1.06 }}
-          transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block',
-            // Desaturated — these are evidence, not postcards
-            filter: 'saturate(0.3) brightness(0.75) contrast(1.1)',
-          }}
-        />
-      </div>
-
-      {/* Location tag */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '0.8rem',
-          left: '0.8rem',
-          background: 'rgba(26,18,8,0.85)',
-          backdropFilter: 'blur(8px)',
-          padding: '0.3rem 0.75rem',
-          fontSize: '0.6rem',
-          fontWeight: 700,
-          letterSpacing: '0.15em',
-          textTransform: 'uppercase',
-          color: 'var(--forest-brown)',
-        }}
-      >
-        {photo.location}
-      </div>
-    </motion.div>
-  )
-}
-
 export default function Reality() {
-  const sectionRef   = useRef<HTMLDivElement>(null)
-  const stripRef     = useRef<HTMLDivElement>(null)
-  const lineRef      = useRef<HTMLDivElement>(null)
-  const lineInView   = useInView(lineRef, { once: true, margin: '-80px' })
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const stickyRef = useRef<HTMLDivElement>(null)
+  const imagesRef = useRef<(HTMLDivElement | null)[]>([])
+  const lastImageRef = useRef<HTMLDivElement>(null)
+  const revealRef = useRef<HTMLDivElement>(null)
+  const headlineRef = useRef<HTMLDivElement>(null)
 
-  // Scroll-driven horizontal drift for the photo strip
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start end', 'end start'],
-  })
-
-  // Photos drift left as you scroll through the section
-  const stripX = useTransform(scrollYProgress, [0, 1], ['4%', '-18%'])
-
-  // GSAP: the single line reveal — letters that materialise from nothing
   useEffect(() => {
-    if (!lineRef.current) return
+    const section = sectionRef.current
+    const sticky = stickyRef.current
+    if (!section || !sticky) return
 
     const ctx = gsap.context(() => {
-      const chars = lineRef.current!.querySelectorAll('.char')
+      // Total scroll length:
+      // 7 images × 1 viewport each + 1 viewport for zoom-out reveal
+      const totalScrollLength = window.innerHeight * (IMAGES.length + 1.5)
+      section.style.height = `${totalScrollLength}px`
 
-      gsap.fromTo(
-        chars,
-        { opacity: 0, y: 12, filter: 'blur(8px)' },
-        {
-          opacity: 1,
-          y: 0,
-          filter: 'blur(0px)',
-          duration: 0.9,
-          stagger: 0.04,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: lineRef.current,
-            start: 'top 75%',
-            toggleActions: 'play none none none',
-          },
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: `+=${totalScrollLength}`,
+          scrub: 1.2,
+          pin: sticky,
+        },
+      })
+
+      // --- Phase 1: Flashcards ---
+      // Each image occupies 1 "unit" of scroll
+      const unit = 1 / (IMAGES.length + 1.5)
+
+      IMAGES.forEach((_, i) => {
+        const el = imagesRef.current[i]
+        if (!el) return
+
+        const start = i * unit
+        const end = (i + 1) * unit
+
+        if (i === 0) {
+          // First image starts visible
+          gsap.set(el, { opacity: 1 })
+        } else {
+          // All others start invisible
+          gsap.set(el, { opacity: 0 })
+          // Fade in
+          tl.to(el, { opacity: 1, duration: 0.4 }, start)
         }
-      )
-    }, lineRef)
+
+        // Fade out — except the last image, which zooms out instead
+        if (i < IMAGES.length - 1) {
+          tl.to(el, { opacity: 0, duration: 0.4 }, end - 0.05)
+        }
+      })
+
+      // --- Phase 2: Last image zooms out ---
+      const lastImg = lastImageRef.current
+      const revealEl = revealRef.current
+      const headlineEl = headlineRef.current
+
+      if (lastImg && revealEl && headlineEl) {
+        const zoomStart = (IMAGES.length - 1) * unit
+        const zoomEnd = IMAGES.length * unit
+        const revealStart = zoomEnd
+        const revealEnd = revealStart + unit * 0.8
+
+        // Zoom out the last image
+        tl.to(
+          lastImg,
+          {
+            scale: 0.55,
+            opacity: 0.18,
+            filter: 'blur(6px)',
+            duration: 0.6,
+            ease: 'power2.inOut',
+          },
+          zoomStart
+        )
+
+        // Reveal text overlay fades in
+        tl.to(
+          revealEl,
+          {
+            opacity: 1,
+            duration: 0.5,
+          },
+          zoomStart + 0.3
+        )
+
+        // Headline comes up from below
+        tl.fromTo(
+          headlineEl.querySelectorAll('.line'),
+          { y: 60, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.5,
+            stagger: 0.12,
+            ease: 'power3.out',
+          },
+          revealStart
+        )
+      }
+    }, section)
 
     return () => ctx.revert()
   }, [])
 
-  // Split the line text into individual character spans for the GSAP animation
-  const lineText = 'The place you love is disappearing.'
-  const chars = lineText.split('').map((char, i) => (
-    <span
-      key={i}
-      className="char"
-      style={{
-        display: 'inline-block',
-        whiteSpace: char === ' ' ? 'pre' : 'normal',
-      }}
-    >
-      {char}
-    </span>
-  ))
-
   return (
     <section
-      id="reality"
       ref={sectionRef}
-      style={{
-        position: 'relative',
-        background: 'var(--midnight)',
-        overflow: 'hidden',
-        // Tall enough to scroll through and feel the weight
-        paddingBottom: 'clamp(6rem, 12vw, 12rem)',
-      }}
+      id="reality"
+      style={{ position: 'relative' }}
     >
-      {/* ── SECTION LABEL ── */}
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8 }}
+      {/* Sticky viewport — stays pinned while scroll happens */}
+      <div
+        ref={stickyRef}
         style={{
-          paddingTop: 'clamp(5rem, 10vw, 10rem)',
-          paddingLeft: 'var(--gutter)',
-          paddingRight: 'var(--gutter)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.8rem',
-          marginBottom: '3.5rem',
+          position: 'sticky',
+          top: 0,
+          width: '100%',
+          height: '100vh',
+          overflow: 'hidden',
+          background: '#0a0a08',
         }}
       >
+        {/* ── Flashcard images stacked, all position:absolute ── */}
+        {IMAGES.map((img, i) => {
+          const isLast = i === IMAGES.length - 1
+          return (
+            <div
+              key={i}
+              ref={isLast ? lastImageRef : (el) => { imagesRef.current[i] = el }}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                opacity: i === 0 ? 1 : 0,
+                willChange: 'opacity, transform',
+              }}
+            >
+              {/* Image */}
+              <img
+                src={img.src}
+                alt={img.location}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  filter: 'grayscale(85%) brightness(0.55) contrast(1.1)',
+                  transformOrigin: 'center center',
+                  display: 'block',
+                }}
+              />
+
+              {/* Dark vignette overlay */}
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background:
+                    'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.7) 100%)',
+                  pointerEvents: 'none',
+                }}
+              />
+
+              {/* Location label — bottom left */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '2.5rem',
+                  left: '2.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                }}
+              >
+                <div
+                  style={{
+                    width: '2rem',
+                    height: '1px',
+                    background: '#c9a84c',
+                    opacity: 0.8,
+                  }}
+                />
+                <span
+                  style={{
+                    fontFamily: 'var(--font-body, sans-serif)',
+                    fontSize: '0.7rem',
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(255,255,255,0.5)',
+                  }}
+                >
+                  {img.location}
+                </span>
+              </div>
+
+              {/* Image counter — top right */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '2rem',
+                  right: '2.5rem',
+                  fontFamily: 'var(--font-body, sans-serif)',
+                  fontSize: '0.65rem',
+                  letterSpacing: '0.2em',
+                  color: 'rgba(255,255,255,0.3)',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {String(i + 1).padStart(2, '0')} / {String(IMAGES.length).padStart(2, '0')}
+              </div>
+            </div>
+          )
+        })}
+
+        {/* ── Text reveal overlay — fades in after zoom out ── */}
         <div
+          ref={revealRef}
           style={{
-            width: 28,
-            height: 1,
-            background: 'var(--tea-gold)',
-            flexShrink: 0,
-          }}
-        />
-        <span
-          style={{
-            fontSize: '0.62rem',
-            fontWeight: 600,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            color: 'var(--tea-gold)',
-          }}
-        >
-          The Reality
-        </span>
-      </motion.div>
-
-      {/* ── OPENING LINE — sets tone before photos ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-60px' }}
-        transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
-        style={{
-          paddingLeft: 'var(--gutter)',
-          paddingRight: 'var(--gutter)',
-          maxWidth: '820px',
-          marginBottom: 'clamp(3rem, 6vw, 6rem)',
-        }}
-      >
-        <p
-          style={{
-            fontFamily: 'var(--ff-display)',
-            fontWeight: 700,
-            fontStyle: 'italic',
-            fontSize: 'clamp(1.4rem, 3vw, 2.4rem)',
-            lineHeight: 1.3,
-            color: 'var(--forest-brown)',
-            letterSpacing: '-0.01em',
-          }}
-        >
-          This is what Darjeeling looks like{' '}
-          <em style={{ color: 'var(--warm-amber)', fontStyle: 'normal' }}>
-            when nobody shows up.
-          </em>
-        </p>
-      </motion.div>
-
-      {/* ── PHOTO STRIP — horizontal drift on scroll ── */}
-      <div
-        style={{
-          overflow: 'visible',
-          marginBottom: 'clamp(4rem, 8vw, 8rem)',
-          // Clip so photos don't overflow the page width
-          WebkitMaskImage:
-            'linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)',
-          maskImage:
-            'linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)',
-        }}
-      >
-        <motion.div
-          ref={stripRef}
-          style={{
-            display: 'flex',
-            gap: 'clamp(1rem, 2vw, 1.5rem)',
-            alignItems: 'flex-end',
-            paddingLeft: 'var(--gutter)',
-            paddingRight: 'var(--gutter)',
-            x: stripX,
-            willChange: 'transform',
-          }}
-        >
-          {PHOTOS.map((photo, i) => (
-            <PhotoCard key={i} photo={photo} index={i} />
-          ))}
-        </motion.div>
-      </div>
-
-      {/* ── THE LINE — the gut punch ── */}
-      <div
-        ref={lineRef}
-        style={{
-          paddingLeft: 'var(--gutter)',
-          paddingRight: 'var(--gutter)',
-          maxWidth: 'var(--container)',
-          margin: '0 auto',
-          position: 'relative',
-        }}
-      >
-        {/* Thin gold rule above */}
-        <motion.div
-          initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
-          style={{
-            height: 1,
-            background:
-              'linear-gradient(to right, var(--tea-gold), transparent)',
-            transformOrigin: 'left',
-            marginBottom: 'clamp(2rem, 4vw, 4rem)',
-          }}
-        />
-
-        {/* The line — char by char reveal */}
-        <p
-          style={{
-            fontFamily: 'var(--ff-display)',
-            fontWeight: 900,
-            fontSize: 'clamp(2.2rem, 6vw, 6.5rem)',
-            lineHeight: 1,
-            letterSpacing: '-0.025em',
-            color: 'var(--cream)',
-            marginBottom: 'clamp(1.5rem, 3vw, 3rem)',
-          }}
-        >
-          {chars}
-        </p>
-
-        {/* Sub-line — arrives after the main line */}
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: lineInView ? 1 : 0, y: lineInView ? 0 : 16 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: lineText.length * 0.04 + 0.2 }}
-          style={{
-            fontSize: 'clamp(0.85rem, 1.2vw, 1rem)',
-            lineHeight: 1.75,
-            color: 'var(--forest-brown)',
-            fontStyle: 'italic',
-            maxWidth: '480px',
-          }}
-        >
-          One plastic bag at a time. One Sunday at a time, we take it back.
-        </motion.p>
-      </div>
-
-      {/* ── SCROLL INDICATOR — arrow pointing down ── */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8, delay: 0.5 }}
-        style={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          paddingRight: 'var(--gutter)',
-          paddingTop: 'clamp(3rem, 5vw, 5rem)',
-        }}
-      >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-          style={{
+            position: 'absolute',
+            inset: 0,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '0.4rem',
+            justifyContent: 'center',
+            opacity: 0,
+            padding: '2rem',
+            zIndex: 10,
+            background: 'rgba(0,0,0,0.45)',
           }}
         >
-          <span
-            style={{
-              fontSize: '0.55rem',
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: 'var(--dark-earth)',
-            }}
-          >
-            The story
-          </span>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            style={{ opacity: 0.4 }}
-          >
-            <path
-              d="M8 3v10M3 9l5 5 5-5"
-              stroke="var(--tea-gold)"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <div ref={headlineRef} style={{ textAlign: 'center', maxWidth: '800px' }}>
+            {/* Big bold headline */}
+            <div
+              className="line"
+              style={{
+                fontFamily: 'var(--font-display, serif)',
+                fontSize: 'clamp(2.8rem, 7vw, 6.5rem)',
+                fontWeight: 800,
+                lineHeight: 1.05,
+                color: '#ffffff',
+                letterSpacing: '-0.02em',
+                marginBottom: '0.2em',
+              }}
+            >
+              The place you love
+            </div>
+            <div
+              className="line"
+              style={{
+                fontFamily: 'var(--font-display, serif)',
+                fontSize: 'clamp(2.8rem, 7vw, 6.5rem)',
+                fontWeight: 800,
+                lineHeight: 1.05,
+                color: '#ffffff',
+                letterSpacing: '-0.02em',
+                marginBottom: '2rem',
+              }}
+            >
+              is{' '}
+              <span style={{ color: '#c9a84c', fontStyle: 'italic' }}>
+                disappearing.
+              </span>
+            </div>
+
+            {/* Gold rule */}
+            <div
+              className="line"
+              style={{
+                width: '3rem',
+                height: '2px',
+                background: '#c9a84c',
+                margin: '0 auto 1.8rem',
+                opacity: 0.7,
+              }}
             />
-          </svg>
-        </motion.div>
-      </motion.div>
 
-      {/* ── MOBILE: responsive overrides ── */}
-      <style>{`
-        @media (max-width: 768px) {
-          #reality-strip {
-            padding-left: 1.25rem;
-          }
-        }
+            {/* Small description */}
+            <div
+              className="line"
+              style={{
+                fontFamily: 'var(--font-body, sans-serif)',
+                fontSize: 'clamp(0.9rem, 1.8vw, 1.15rem)',
+                color: 'rgba(255,255,255,0.55)',
+                lineHeight: 1.75,
+                letterSpacing: '0.01em',
+              }}
+            >
+              One plastic bag at a time.
+              <br />
+              <span style={{ color: 'rgba(201, 168, 76, 0.8)' }}>
+                One Sunday at a time, we take it back.
+              </span>
+            </div>
+          </div>
+        </div>
 
-        @media (max-width: 480px) {
-          /* On mobile, photos are slightly smaller */
-          #reality-strip > div {
-            width: clamp(150px, 60vw, 220px) !important;
-          }
-        }
-      `}</style>
+        {/* Scroll progress bar — thin gold line at bottom */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '2px',
+            background: 'rgba(255,255,255,0.06)',
+            zIndex: 20,
+          }}
+        >
+          <div
+            id="reality-progress"
+            style={{
+              height: '100%',
+              width: '0%',
+              background: '#c9a84c',
+              transition: 'width 0.1s linear',
+            }}
+          />
+        </div>
+      </div>
     </section>
   )
 }

@@ -1,373 +1,481 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
-import gsap from 'gsap'
+import { useEffect, useRef, useCallback } from 'react'
+import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
-// ─── CONFIG — update these numbers as the movement grows ───────────────────
-const STATS = [
-  { num: '54',    suffix: '',   label: 'Sundays given back' },
-  { num: '1,702', suffix: '+',  label: 'People following' },
-  { num: '200',   suffix: '+',  label: 'Who showed up' },
-]
-// ───────────────────────────────────────────────────────────────────────────
+// ── SWAP WITH REAL PHOTOS WHEN ASSETS ARRIVE ────────────────────────────────
+const BG_IMG =
+  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=90'
 
-const wordVariants = {
-  hidden: { y: '110%', opacity: 0 },
-  show: (i: number) => ({
-    y: '0%',
-    opacity: 1,
-    transition: {
-      duration: 1.1,
-      delay: 0.6 + i * 0.14,
-      ease: [0.76, 0, 0.24, 1] as const,
-    },
-  }),
-}
+const LETTER_PHOTOS = [
+  'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&q=85',
+  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=85',
+  'https://images.unsplash.com/photo-1598091383021-15ddea10925d?w=800&q=85',
+  'https://images.unsplash.com/photo-1571401835393-8c5f35328320?w=800&q=85',
+  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=85',
+  'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&q=85',
+  'https://images.unsplash.com/photo-1434394354979-a235cd36269d?w=800&q=85',
+  'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=85',
+]
+// ────────────────────────────────────────────────────────────────────────────
+
+const DARJEELING = 'DARJEELING'
+const FIRST = 'FIRST.'
 
 export default function Hero() {
-  const bgRef    = useRef<HTMLDivElement>(null)
-  const bleedRef = useRef<HTMLDivElement>(null)
-  const pulseRef = useRef<HTMLDivElement>(null)
+  const containerRef  = useRef<HTMLDivElement>(null)
+  const bgRef         = useRef<HTMLDivElement>(null)
+  const bgImgRef      = useRef<HTMLImageElement>(null)
+  const canvasRef     = useRef<HTMLCanvasElement>(null)
+  const darjRowRef    = useRef<HTMLDivElement>(null)
+  const firstRowRef   = useRef<HTMLDivElement>(null)
+  const ruleRef       = useRef<HTMLDivElement>(null)
+  const taglineRef    = useRef<HTMLParagraphElement>(null)
+  const scrollCueRef  = useRef<HTMLDivElement>(null)
+  const letterRefs    = useRef<(HTMLSpanElement | null)[]>([])
+  const imgRefs       = useRef<(HTMLImageElement | null)[]>([])
+  const fadeTimers    = useRef<(ReturnType<typeof setTimeout> | null)[]>([])
+  const mouseRef      = useRef({ x: 0, y: 0, tx: 0, ty: 0 })
+  const rafRef        = useRef<number>(0)
 
+  // ── Preload letter photos ────────────────────────────────────────────────
   useEffect(() => {
+    LETTER_PHOTOS.forEach(src => { const i = new Image(); i.src = src })
+  }, [])
+
+  // ── Mouse tracking ───────────────────────────────────────────────────────
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      mouseRef.current.tx = (e.clientX / window.innerWidth  - 0.5) * 2
+      mouseRef.current.ty = (e.clientY / window.innerHeight - 0.5) * 2
+    }
+    window.addEventListener('mousemove', onMove)
+    return () => window.removeEventListener('mousemove', onMove)
+  }, [])
+
+  // ── Letter hover ─────────────────────────────────────────────────────────
+  const handleLetterEnter = useCallback((i: number) => {
+    const img = imgRefs.current[i]
+    if (!img) return
+    if (fadeTimers.current[i]) { clearTimeout(fadeTimers.current[i]!); fadeTimers.current[i] = null }
+    gsap.to(img, { opacity: 1, scale: 1, duration: 0.4, ease: 'power2.out' })
+  }, [])
+
+  const handleLetterLeave = useCallback((i: number) => {
+    const img = imgRefs.current[i]
+    if (!img) return
+    fadeTimers.current[i] = setTimeout(() => {
+      gsap.to(img, { opacity: 0, scale: 1.06, duration: 0.7, ease: 'power2.in' })
+    }, 200)
+  }, [])
+
+  // ── Canvas: floating elements ────────────────────────────────────────────
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
+    resize()
+    window.addEventListener('resize', resize)
+
+    const elements = [
+      { type: 'ring',    x: 0.10, y: 0.19, z: 0.5,  speed: 0.0006, phase: 0.5,  r: 26 },
+      { type: 'ring',    x: 0.89, y: 0.71, z: 0.4,  speed: 0.0009, phase: 2.1,  r: 17 },
+      { type: 'ring',    x: 0.80, y: 0.16, z: 0.6,  speed: 0.0007, phase: 3.3,  r: 21 },
+      { type: 'ring',    x: 0.93, y: 0.43, z: 0.35, speed: 0.0011, phase: 1.8,  r: 13 },
+      { type: 'line',    x: 0.07, y: 0.57, z: 0.3,  speed: 0.001,  phase: 1.0,  angle: -35 },
+      { type: 'line',    x: 0.93, y: 0.32, z: 0.35, speed: 0.0008, phase: 2.5,  angle: 35  },
+      { type: 'diamond', x: 0.20, y: 0.82, z: 0.45, speed: 0.0011, phase: 0.8  },
+      { type: 'diamond', x: 0.77, y: 0.86, z: 0.55, speed: 0.0007, phase: 1.6  },
+      { type: 'diamond', x: 0.33, y: 0.10, z: 0.38, speed: 0.0013, phase: 3.0  },
+      { type: 'diamond', x: 0.63, y: 0.13, z: 0.42, speed: 0.0009, phase: 2.2  },
+    ]
+
+    let gAlpha = 0, tAlpha = 0
+    ;(canvas as any).__show = () => { tAlpha = 1 }
+    let t = 0
+
+    const drawRing = (cx: number, cy: number, r: number, sc: number, a: number, bob: number) => {
+      ctx.save(); ctx.globalAlpha = a * 0.38; ctx.strokeStyle = '#b8922a'
+      ctx.lineWidth = 1.0 * sc
+      ctx.beginPath(); ctx.arc(cx, cy + bob, r * sc, 0, Math.PI * 2); ctx.stroke()
+      ctx.globalAlpha = a * 0.55; ctx.fillStyle = '#c9a84c'
+      ctx.beginPath(); ctx.arc(cx, cy + bob, 2.2 * sc, 0, Math.PI * 2); ctx.fill()
+      ctx.restore()
+    }
+    const drawLine = (cx: number, cy: number, sc: number, a: number, angle: number, bob: number) => {
+      const len = 48 * sc, rad = (angle * Math.PI) / 180
+      ctx.save(); ctx.globalAlpha = a * 0.28; ctx.strokeStyle = '#a07820'
+      ctx.lineWidth = 0.9 * sc; ctx.translate(cx, cy + bob); ctx.rotate(rad)
+      ctx.beginPath(); ctx.moveTo(-len / 2, 0); ctx.lineTo(len / 2, 0); ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(-len / 2, -4 * sc); ctx.lineTo(-len / 2, 4 * sc)
+      ctx.moveTo(len / 2, -4 * sc);  ctx.lineTo(len / 2, 4 * sc)
+      ctx.stroke(); ctx.restore()
+    }
+    const drawDiamond = (cx: number, cy: number, sc: number, a: number, bob: number) => {
+      const s = 5.5 * sc
+      ctx.save(); ctx.globalAlpha = a * 0.42; ctx.strokeStyle = '#b8922a'
+      ctx.lineWidth = 0.9 * sc
+      ctx.beginPath()
+      ctx.moveTo(cx, cy + bob - s); ctx.lineTo(cx + s, cy + bob)
+      ctx.lineTo(cx, cy + bob + s); ctx.lineTo(cx - s, cy + bob)
+      ctx.closePath(); ctx.stroke(); ctx.restore()
+    }
+
+    const render = () => {
+      rafRef.current = requestAnimationFrame(render); t++
+      mouseRef.current.x += (mouseRef.current.tx - mouseRef.current.x) * 0.04
+      mouseRef.current.y += (mouseRef.current.ty - mouseRef.current.y) * 0.04
+      gAlpha += (tAlpha - gAlpha) * 0.022
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      if (gAlpha < 0.01) return
+      const mx = mouseRef.current.x, my = mouseRef.current.y
+      const W = canvas.width, H = canvas.height
+      elements.forEach(el => {
+        const px  = (el.x + mx * 0.030 * el.z) * W
+        const py  = (el.y + my * 0.018 * el.z) * H
+        const bob = Math.sin(t * el.speed * 1000 + el.phase) * 4.5 * el.z
+        const sc  = 0.5 + el.z * 0.65
+        const a   = gAlpha * (0.4 + el.z * 0.5)
+        if (el.type === 'ring')    drawRing(px, py, (el as any).r || 20, sc, a, bob)
+        if (el.type === 'line')    drawLine(px, py, sc, a, (el as any).angle || 0, bob)
+        if (el.type === 'diamond') drawDiamond(px, py, sc, a, bob)
+      })
+    }
+    render()
+    return () => { cancelAnimationFrame(rafRef.current); window.removeEventListener('resize', resize) }
+  }, [])
+
+  // ── Scroll: 3D depth pullback ────────────────────────────────────────────
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
     const ctx = gsap.context(() => {
-      // Parallax on background image
-      gsap.to(bgRef.current, {
-        yPercent: 22,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '#hero',
-          start: 'top top',
-          end: 'bottom top',
-          scrub: true,
+      ScrollTrigger.create({
+        trigger: container, start: 'top top', end: 'bottom top', scrub: 1.2,
+        onUpdate(self) {
+          const p = self.progress
+          if (darjRowRef.current) gsap.set(darjRowRef.current, { rotateX: p * 18, z: -p * 120, opacity: 1 - p * 1.5 })
+          if (firstRowRef.current) gsap.set(firstRowRef.current, { rotateX: p * 22, z: -p * 155, opacity: 1 - p * 1.7 })
+          if (taglineRef.current)  gsap.set(taglineRef.current,  { opacity: 1 - p * 2.2 })
+          if (ruleRef.current)     gsap.set(ruleRef.current,     { opacity: (1 - p * 2.5) * 0.5 })
+          // Subtle Ken Burns on bg as you scroll out
+          if (bgImgRef.current)    gsap.set(bgImgRef.current,    { scale: 1 + p * 0.06 })
         },
       })
-
-      // Bleeding DARJEELING text parallax (slower than bg)
-      gsap.to(bleedRef.current, {
-        yPercent: 12,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '#hero',
-          start: 'top top',
-          end: 'bottom top',
-          scrub: true,
-        },
-      })
-
-      // Ambient breathing pulse on background
-      gsap.to(pulseRef.current, {
-        scale: 1.04,
-        duration: 7,
-        ease: 'sine.inOut',
-        yoyo: true,
-        repeat: -1,
-      })
-    })
-
+    }, container)
     return () => ctx.revert()
   }, [])
 
+  // ── Entrance — premium slow luminous reveal ──────────────────────────────
+  useEffect(() => {
+    const bg       = bgRef.current
+    const darjRow  = darjRowRef.current
+    const firstRow = firstRowRef.current
+    const rule     = ruleRef.current
+    const tagline  = taglineRef.current
+    const scrollCue = scrollCueRef.current
+    const canvas   = canvasRef.current
+    if (!bg || !darjRow || !firstRow || !rule || !tagline || !scrollCue) return
+
+    const darjChars  = Array.from(darjRow.querySelectorAll('.ch'))
+    const firstChars = Array.from(firstRow.querySelectorAll('.ch'))
+
+    // Initial states — subtle, not theatrical
+    gsap.set(bg,         { opacity: 0 })
+    gsap.set(darjChars,  { opacity: 0, y: 22, filter: 'blur(3px)' })
+    gsap.set(firstChars, { opacity: 0, y: 18, filter: 'blur(3px)' })
+    gsap.set(rule,       { scaleX: 0, opacity: 0 })
+    gsap.set(tagline,    { opacity: 0 })
+    gsap.set(scrollCue,  { opacity: 0 })
+
+    const tl = gsap.timeline({ delay: 0.2 })
+
+    // 1. Scene breathes in — slow, cinematic
+    tl.to(bg, { opacity: 1, duration: 2.0, ease: 'power1.inOut' })
+
+    // 2. Canvas elements appear
+    tl.call(() => { (canvas as any).__show?.() }, [], '-=1.0')
+
+    // 3. DARJEELING — each letter emerges from darkness, barely any y movement
+    //    Long stagger so each letter feels individually placed
+    tl.to(darjChars, {
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      duration: 1.1,
+      stagger: {
+        amount: 0.7,       // total stagger time spread across all chars
+        ease: 'power2.in', // acceleration — early letters slow, last ones fast
+      },
+      ease: 'power2.out',
+    }, '-=0.6')
+
+    // 4. Brief pause — the word lands
+    tl.to({}, { duration: 0.15 })
+
+    // 5. FIRST. — arrives as one weight, slightly faster
+    tl.to(firstChars, {
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      duration: 0.9,
+      stagger: {
+        amount: 0.4,
+        ease: 'power1.in',
+      },
+      ease: 'power2.out',
+    })
+
+    // 6. Gold rule draws in from center
+    tl.to(rule, {
+      scaleX: 1,
+      opacity: 0.5,
+      duration: 0.9,
+      ease: 'power3.out',
+    }, '-=0.3')
+
+    // 7. Tagline fades in — very slow, almost whispered
+    tl.to(tagline, {
+      opacity: 1,
+      duration: 1.0,
+      ease: 'power1.out',
+    }, '-=0.4')
+
+    // 8. Scroll cue
+    tl.to(scrollCue, { opacity: 1, duration: 0.6, ease: 'power1.out' }, '-=0.3')
+
+    return () => { tl.kill() }
+  }, [])
+
+  // ── Looping scroll cue ───────────────────────────────────────────────────
+  useEffect(() => {
+    const line = scrollCueRef.current?.querySelector('.scroll-line') as HTMLElement
+    if (!line) return
+    const loop = gsap.fromTo(line,
+      { scaleY: 0, transformOrigin: 'top center', opacity: 0.9 },
+      { scaleY: 1, opacity: 0, transformOrigin: 'top center', duration: 1.3, ease: 'power1.inOut', repeat: -1, repeatDelay: 0.5, delay: 3.5 }
+    )
+    return () => { loop.kill() }
+  }, [])
+
+  // ── Render letter with image clip ────────────────────────────────────────
+  const renderLetter = (char: string, gi: number, isFirst: boolean) => {
+    const photoSrc = LETTER_PHOTOS[gi % LETTER_PHOTOS.length]
+    return (
+      <span
+        key={gi}
+        ref={el => { letterRefs.current[gi] = el }}
+        onMouseEnter={() => handleLetterEnter(gi)}
+        onMouseLeave={() => handleLetterLeave(gi)}
+        style={{ position: 'relative', display: 'inline-block', cursor: 'default', willChange: 'transform, opacity, filter' }}
+      >
+        {/* Letter */}
+        <span style={{
+          position: 'relative', zIndex: 2, display: 'block',
+          color: isFirst ? '#c9a84c' : '#f0ece4',
+          // Premium deep 3D extrude — darker shadow base, lighter top highlight
+          textShadow: isFirst
+            ? [
+                '1px 1px 0 #8a5a0a',
+                '2px 2px 0 #7a4f08',
+                '3px 3px 0 #6b4407',
+                '4px 4px 0 #5c3a06',
+                '5px 5px 0 #4e3005',
+                '6px 6px 0 #3f2604',
+                '7px 7px 12px rgba(0,0,0,0.7)',
+                '0 0 55px rgba(201,168,76,0.18)',
+                '0 -1px 0 rgba(255,220,120,0.3)',  // top highlight
+              ].join(', ')
+            : [
+                '1px 1px 0 rgba(180,145,55,0.85)',
+                '2px 2px 0 rgba(160,125,40,0.75)',
+                '3px 3px 0 rgba(140,105,28,0.65)',
+                '4px 4px 0 rgba(120,88,18,0.52)',
+                '5px 5px 0 rgba(100,70,10,0.38)',
+                '6px 6px 0 rgba(80,55,5,0.25)',
+                '7px 7px 0 rgba(60,38,0,0.15)',
+                '8px 8px 16px rgba(0,0,0,0.65)',
+                '0 0 70px rgba(201,168,76,0.08)',
+                '0 -1px 0 rgba(255,255,255,0.12)', // top highlight
+              ].join(', '),
+          userSelect: 'none',
+        }}>
+          {char}
+        </span>
+
+        {/* Photo clipped inside letter */}
+        <span style={{ position: 'absolute', inset: 0, zIndex: 3, display: 'block', overflow: 'hidden', pointerEvents: 'none' }}>
+          <img
+            ref={el => { imgRefs.current[gi] = el }}
+            src={photoSrc}
+            alt=""
+            style={{
+              position: 'absolute', top: '-20%', left: '-20%',
+              width: '140%', height: '140%',
+              objectFit: 'cover', opacity: 0,
+              mixBlendMode: 'luminosity',
+              filter: 'saturate(1.5) brightness(1.15)',
+              willChange: 'opacity, transform',
+            }}
+          />
+        </span>
+      </span>
+    )
+  }
+
   return (
     <section
+      ref={containerRef}
       id="hero"
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '100svh',
-        minHeight: '700px',
-        overflow: 'hidden',
-        display: 'flex',
-        alignItems: 'flex-end',
-      }}
+      style={{ position: 'relative', width: '100%', height: '100svh', overflow: 'hidden', background: '#030301' }}
     >
-      {/* ── BACKGROUND ── */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-        <div
-          ref={pulseRef}
-          style={{ position: 'absolute', inset: '-10%', willChange: 'transform' }}
-        >
-          <div
-            ref={bgRef}
-            style={{
-              position: 'absolute',
-              inset: '-15%',
-              backgroundImage:
-                'url(https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1800&q=85)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center 40%',
-              willChange: 'transform',
-            }}
-          />
-        </div>
-
-        {/* Mist overlay — fog, not shadow */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to bottom, rgba(26,18,8,0.1) 0%, rgba(26,18,8,0.45) 40%, rgba(26,18,8,0.92) 100%)',
-        }} />
-        {/* Left atmospheric vignette */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(105deg, rgba(26,18,8,0.55) 0%, transparent 55%)',
-        }} />
-        {/* Mist layer — the fog effect */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'radial-gradient(ellipse 120% 60% at 50% 30%, rgba(200,216,192,0.04) 0%, transparent 70%)',
-        }} />
-      </div>
-
-      {/* ── BLEEDING "DARJEELING" ── */}
-      <motion.div
-        ref={bleedRef}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 2, delay: 0.3 }}
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          bottom: '14%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          fontFamily: 'var(--ff-display)',
-          fontWeight: 900,
-          // Intentionally bleeds off viewport — that's the design
-          fontSize: 'clamp(8rem, 28vw, 28rem)',
-          letterSpacing: '-0.03em',
-          lineHeight: 1,
-          color: 'transparent',
-          WebkitTextStroke: '1px rgba(200,151,58,0.12)',
-          whiteSpace: 'nowrap',
-          pointerEvents: 'none',
-          userSelect: 'none',
-          zIndex: 1,
-        }}
-      >
-        DARJEELING
-      </motion.div>
-
-      {/* ── MOUNTAIN SILHOUETTE SVG ── */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        zIndex: 2, pointerEvents: 'none',
-      }}>
-        <svg
-          viewBox="0 0 1440 180"
-          preserveAspectRatio="none"
-          style={{ width: '100%', display: 'block' }}
-        >
-          <path
-            d="M0 180 L0 120 L90 95 L170 115 L260 65 L340 88 L420 42 L500 68 L580 28 L660 55 L740 18 L820 46 L900 70 L980 38 L1060 62 L1150 82 L1240 58 L1330 88 L1400 108 L1440 95 L1440 180 Z"
-            fill="#1A1208"
-          />
-          <path
-            d="M0 180 L0 148 L130 132 L280 142 L400 115 L530 128 L650 100 L770 115 L890 105 L1010 120 L1140 134 L1270 112 L1380 138 L1440 125 L1440 180 Z"
-            fill="#3D2B0E"
-            opacity="0.65"
-          />
-          <path
-            d="M0 180 L0 165 L220 155 L440 163 L660 152 L880 161 L1100 155 L1320 163 L1440 158 L1440 180 Z"
-            fill="#2D4A2D"
-            opacity="0.4"
-          />
-        </svg>
-      </div>
-
-      {/* ── CONTENT ── */}
-      <div
-        style={{
-          position: 'relative', zIndex: 3,
-          width: '100%', maxWidth: 'var(--container)',
-          margin: '0 auto',
-          padding: '0 var(--gutter) clamp(4rem, 8vh, 7rem)',
-          display: 'grid',
-          gridTemplateColumns: '1fr auto',
-          gap: '3rem',
-          alignItems: 'end',
-        }}
-      >
-        {/* LEFT */}
-        <div>
-          {/* Eyebrow */}
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.4 }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '0.8rem',
-              marginBottom: '1.8rem',
-            }}
-          >
-            <div style={{
-              width: 32, height: 1,
-              background: 'var(--tea-gold)', flexShrink: 0,
-            }} />
-            <span style={{
-              fontSize: '0.65rem', fontWeight: 600,
-              letterSpacing: '0.22em', textTransform: 'uppercase',
-              color: 'var(--tea-gold)',
-            }}>
-              Darjeeling, West Bengal · Est. 2024
-            </span>
-          </motion.div>
-
-          {/* Headline — word by word */}
-          <h1 style={{
-            fontFamily: 'var(--ff-display)', fontWeight: 900,
-            fontSize: 'clamp(3.8rem, 9vw, 9rem)',
-            lineHeight: 0.9, letterSpacing: '-0.025em',
-            marginBottom: '1.8rem',
-            overflow: 'hidden',
-          }}>
-            {['We', 'show', 'up.'].map((word, i) => (
-              <span
-                key={word}
-                style={{ overflow: 'hidden', display: 'inline-block', marginRight: '0.2em' }}
-              >
-                <motion.span
-                  custom={i}
-                  variants={wordVariants}
-                  initial="hidden"
-                  animate="show"
-                  style={{
-                    display: 'inline-block',
-                    color: i === 1 ? 'var(--warm-amber)' : 'var(--cream)',
-                    fontStyle: i === 1 ? 'italic' : 'normal',
-                  }}
-                >
-                  {word}
-                </motion.span>
-              </span>
-            ))}
-          </h1>
-
-          {/* Subheading */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 1.1 }}
-            style={{
-              fontSize: 'clamp(0.9rem, 1.2vw, 1.05rem)',
-              lineHeight: 1.75, color: 'var(--mist-green)',
-              maxWidth: 420, marginBottom: '2.5rem',
-            }}
-          >
-            A group of friends from the same hills, the same school of
-            thought — who got tired of waiting for someone else to clean
-            up what they love most.
-          </motion.p>
-
-          {/* CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 1.35 }}
-            style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}
-          >
-            <a
-              href="#invitation"
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--warm-amber)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'var(--tea-gold)')}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                fontFamily: 'var(--ff-body)', fontSize: '0.75rem',
-                fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase',
-                color: 'var(--midnight)', background: 'var(--tea-gold)',
-                padding: '0.9rem 2rem', transition: 'background 0.25s',
-              }}
-            >
-              Join a Sunday
-            </a>
-            <a
-              href="#beginning"
-              style={{
-                fontSize: '0.82rem', fontWeight: 400,
-                color: 'rgba(245,237,216,0.6)',
-                borderBottom: '1px solid rgba(245,237,216,0.2)',
-                paddingBottom: '2px', transition: 'color 0.25s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--cream)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(245,237,216,0.6)')}
-            >
-              Our story
-            </a>
-          </motion.div>
-        </div>
-
-        {/* RIGHT — STATS */}
-        <motion.div
-          initial={{ opacity: 0, x: 24 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.9, delay: 1.15 }}
+      {/* ── Background ───────────────────────────────────────────────── */}
+      <div ref={bgRef} style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+        <img
+          ref={bgImgRef}
+          src={BG_IMG}
+          alt="Darjeeling hills"
           style={{
-            display: 'flex', flexDirection: 'column',
-            gap: '1.8rem', paddingBottom: '0.5rem',
+            width: '100%', height: '100%', objectFit: 'cover',
+            // Slightly cooler, more cinematic — not just flat dark
+            filter: 'brightness(0.38) saturate(1.2) contrast(1.05)',
+            transformOrigin: 'center center',
+          }}
+        />
+        {/* Deep vignette — corners very dark, center breathes */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse 75% 65% at 50% 38%, transparent 0%, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.82) 100%)',
+        }} />
+        {/* Bottom fade to next section */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, transparent 30%, rgba(0,0,0,0.0) 60%, rgba(0,0,0,0.88) 100%)',
+        }} />
+      </div>
+
+      {/* ── Canvas ───────────────────────────────────────────────────── */}
+      <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none' }} />
+
+      {/* ── Text ─────────────────────────────────────────────────────── */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 4,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        perspective: '1000px', perspectiveOrigin: '50% 48%',
+      }}>
+        {/* DARJEELING */}
+        <div
+          ref={darjRowRef}
+          style={{
+            fontFamily: 'var(--font-display, Georgia, serif)',
+            fontSize: 'clamp(3rem, 9.5vw, 9rem)',
+            fontWeight: 900,
+            letterSpacing: '-0.02em',
+            lineHeight: 0.9,
+            textTransform: 'uppercase',
+            transformStyle: 'preserve-3d',
+            willChange: 'transform, opacity',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
-          {STATS.map((s, i) => (
-            <div
-              key={i}
-              style={{
-                borderLeft: '2px solid var(--tea-gold)',
-                paddingLeft: '1.2rem',
-              }}
-            >
-              <div style={{
-                fontFamily: 'var(--ff-display)',
-                fontSize: 'clamp(1.6rem, 2.5vw, 2.2rem)',
-                fontWeight: 700, color: 'var(--warm-amber)', lineHeight: 1,
-              }}>
-                {s.num}<span style={{ fontSize: '0.7em' }}>{s.suffix}</span>
-              </div>
-              <div style={{
-                fontSize: '0.62rem', fontWeight: 600,
-                letterSpacing: '0.14em', textTransform: 'uppercase',
-                color: 'var(--mist-green)', marginTop: '0.3rem',
-              }}>
-                {s.label}
-              </div>
-            </div>
-          ))}
-        </motion.div>
+          {DARJEELING.split('').map((ch, i) => renderLetter(ch, i, false))}
+        </div>
+
+        {/* FIRST. */}
+        <div
+          ref={firstRowRef}
+          style={{
+            fontFamily: 'var(--font-display, Georgia, serif)',
+            fontSize: 'clamp(3rem, 9.5vw, 9rem)',
+            fontWeight: 900,
+            letterSpacing: '-0.02em',
+            lineHeight: 0.9,
+            textTransform: 'uppercase',
+            fontStyle: 'italic',
+            transformStyle: 'preserve-3d',
+            willChange: 'transform, opacity',
+            marginTop: '0.05em',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          {FIRST.split('').map((ch, i) => renderLetter(ch, DARJEELING.length + i, true))}
+        </div>
+
+        {/* Gold rule — draws in from center */}
+        <div
+          ref={ruleRef}
+          style={{
+            width: 'clamp(2.5rem, 5.5vw, 4.5rem)',
+            height: '1px',
+            // Two-tone: brighter center, fades at edges
+            background: 'linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.4) 20%, rgba(220,185,90,0.9) 50%, rgba(201,168,76,0.4) 80%, transparent 100%)',
+            margin: 'clamp(1rem, 2.2vw, 1.7rem) 0',
+            transformOrigin: 'center',
+            willChange: 'transform, opacity',
+          }}
+        />
+
+        {/* Tagline */}
+        <p
+          ref={taglineRef}
+          style={{
+            fontFamily: 'var(--font-body, sans-serif)',
+            fontSize: 'clamp(0.62rem, 1.2vw, 0.85rem)',
+            letterSpacing: '0.32em',
+            textTransform: 'uppercase',
+            // Warm white — not cold grey
+            color: 'rgba(240,230,210,0.42)',
+            margin: 0, textAlign: 'center',
+            willChange: 'opacity',
+          }}
+        >
+          There&apos;s a reason for that name.
+        </p>
+
+        {/* Scroll cue */}
+        <div
+          ref={scrollCueRef}
+          style={{
+            position: 'absolute', bottom: '2rem', left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
+          }}
+        >
+          <span style={{
+            fontFamily: 'var(--font-body, sans-serif)', fontSize: '0.52rem',
+            letterSpacing: '0.35em', textTransform: 'uppercase',
+            color: 'rgba(240,220,180,0.18)',
+          }}>
+            scroll
+          </span>
+          <div style={{ width: '1px', height: '3rem', background: 'rgba(255,255,255,0.07)', position: 'relative', overflow: 'hidden' }}>
+            <div className="scroll-line" style={{
+              position: 'absolute', top: 0, left: 0, right: 0, height: '100%',
+              background: 'linear-gradient(to bottom, rgba(201,168,76,0.9) 0%, rgba(201,168,76,0.05) 100%)',
+              willChange: 'transform, opacity',
+            }} />
+          </div>
+        </div>
       </div>
 
-      {/* ── SCROLL CUE ── */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 0.8 }}
-        style={{
-          position: 'absolute', bottom: '2.5rem', left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 3, display: 'flex', flexDirection: 'column',
-          alignItems: 'center', gap: '0.5rem',
-        }}
-      >
-        <span style={{
-          fontSize: '0.55rem', letterSpacing: '0.22em',
-          textTransform: 'uppercase', color: 'var(--forest-brown)',
-        }}>
-          Scroll
-        </span>
-        <div style={{
-          width: 1, height: 48, background: 'var(--dark-earth)',
-          position: 'relative', overflow: 'hidden',
-        }}>
-          <motion.div
-            animate={{ y: ['-100%', '100%'] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            style={{
-              position: 'absolute', inset: 0,
-              background: 'linear-gradient(to bottom, transparent, var(--tea-gold))',
-            }}
-          />
-        </div>
-      </motion.div>
+      {/* ── Location label ───────────────────────────────────────────── */}
+      <div style={{
+        position: 'absolute', top: '1.5rem', left: '1.8rem', zIndex: 5,
+        fontFamily: 'var(--font-body, sans-serif)', fontSize: '0.58rem',
+        letterSpacing: '0.24em', textTransform: 'uppercase',
+        color: 'rgba(220,205,175,0.25)',
+        display: 'flex', alignItems: 'center', gap: '0.75rem',
+      }}>
+        <div style={{ width: '1.4rem', height: '1px', background: 'rgba(201,168,76,0.45)' }} />
+        Darjeeling, West Bengal
+      </div>
     </section>
   )
 }
