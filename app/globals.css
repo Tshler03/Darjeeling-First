@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* ── Colour tokens ── */
+  --midnight:    #1A1208;
+  --dark-earth:  #3D2B0E;
+  --forest-brown:#7A5C1E;
+  --tea-gold:    #C8973A;
+  --warm-amber:  #E8C77A;
+  --cream:       #F5EDD8;
+  --hill-green:  #2D4A2D;
+  --mist-green:  #C8D8C0;
+
+  /* ── Typography ── */
+  --ff-display: 'Playfair Display', Georgia, serif;
+  --ff-body:    'DM Sans', system-ui, sans-serif;
+
+  /* ── Spacing ── */
+  --section-pad: clamp(5rem, 10vw, 10rem);
+  --container:   1200px;
+  --gutter:      clamp(1.5rem, 5vw, 4rem);
+
+  /* ── Motion ── */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:   cubic-bezier(0.76, 0, 0.24, 1);
+  --duration-slow: 1.2s;
+  --duration-med:  0.8s;
+}
+
+html {
+  font-size: 16px;
+  /* Lenis handles smooth scroll — no CSS scroll-behavior */
+}
+
+body {
+  font-family: var(--ff-body);
+  background: var(--midnight);
+  color: var(--cream);
+  overflow-x: hidden;
+  /* Lenis needs this */
+  height: 100%;
+}
+
+/* ── Lenis smooth scroll ── */
+html.lenis {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+/* ── Snap container (applied via JS on the wrapper) ── */
+.snap-container {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: 100svh;
+}
+.snap-section {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* ── Typography base ── */
+h1, h2, h3, h4 {
+  font-family: var(--ff-display);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+p {
+  font-family: var(--ff-body);
+  line-height: 1.75;
+  font-weight: 400;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img, video {
+  display: block;
+  max-width: 100%;
+}
+
+/* ── Utility: visually hidden ── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--midnight); }
+::-webkit-scrollbar-thumb { background: var(--dark-earth); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--tea-gold); }
+
+/* ── Selection ── */
+::selection {
+  background: var(--tea-gold);
+  color: var(--midnight);
+}
