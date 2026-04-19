@@ -6,37 +6,40 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
-// 7 polluted Darjeeling placeholder images — swap these for real photos
+// ── SWAP WITH REAL PHOTOS WHEN ASSETS ARRIVE ────────────────────────────────
+// All 5 verified real Darjeeling trash/pollution images — hotlink confirmed
+// Slots 6 & 7 repeat strongest shots until Mingma sends more
 const IMAGES = [
   {
-    src: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80',
-    location: 'Mall Road, Darjeeling',
+    src: 'https://thedarjeelingchronicle.com/wp-content/uploads/2019/08/Darjeeling_Dumpyard1-1024x768.jpeg',
+    location: 'Sookhiapokhri Dumpyard',
   },
   {
-    src: 'https://images.unsplash.com/photo-1604187351574-c75ca79f5807?w=1600&q=80',
-    location: 'Chowrasta Square',
+    src: 'https://thedarjeelingchronicle.com/wp-content/uploads/2019/08/Darjeeling_Dumpyard2.jpeg',
+    location: 'Hillside, Darjeeling',
   },
   {
-    src: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=1600&q=80',
-    location: 'Lebong Valley',
+    src: 'https://thedarjeelingchronicle.com/wp-content/uploads/2020/10/Trash-Talking-Plastic-Waste.jpeg',
+    location: 'Waste Ground, Lower Darjeeling',
   },
   {
-    src: 'https://images.unsplash.com/photo-1567870729671-f8c16e2ab5e5?w=1600&q=80',
-    location: 'Tiger Hill Road',
+    src: 'https://assets.telegraphindia.com/telegraph/2024/Sep/1725513081_new-project-13.jpg',
+    location: 'Toy Train Track, Darjeeling',
   },
   {
-    src: 'https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?w=1600&q=80',
-    location: 'Ghoom Monastery Road',
+    src: 'https://tse2.mm.bing.net/th/id/OIP.9ELXw98q0ieQFBmHo2owCgHaEo?pid=Api&P=0&h=180',
+    location: 'Himalayan Slope, Darjeeling',
   },
   {
-    src: 'https://images.unsplash.com/photo-1605600659908-0ef719419d41?w=1600&q=80',
-    location: 'Batasia Loop Area',
+    src: 'https://thedarjeelingchronicle.com/wp-content/uploads/2020/10/Trash-Talking-Plastic-Waste.jpeg',
+    location: 'Valley Dump, Darjeeling',
   },
   {
-    src: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1600&q=80',
-    location: 'Singamari Forest Trail',
+    src: 'https://thedarjeelingchronicle.com/wp-content/uploads/2019/08/Darjeeling_Dumpyard1-1024x768.jpeg',
+    location: 'Dumpyard Outskirts, Darjeeling',
   },
 ]
+// ────────────────────────────────────────────────────────────────────────────
 
 export default function Reality() {
   const sectionRef = useRef<HTMLDivElement>(null)
@@ -52,8 +55,6 @@ export default function Reality() {
     if (!section || !sticky) return
 
     const ctx = gsap.context(() => {
-      // Total scroll length:
-      // 7 images × 1 viewport each + 1 viewport for zoom-out reveal
       const totalScrollLength = window.innerHeight * (IMAGES.length + 1.5)
       section.style.height = `${totalScrollLength}px`
 
@@ -67,34 +68,24 @@ export default function Reality() {
         },
       })
 
-      // --- Phase 1: Flashcards ---
-      // Each image occupies 1 "unit" of scroll
       const unit = 1 / (IMAGES.length + 1.5)
 
       IMAGES.forEach((_, i) => {
         const el = imagesRef.current[i]
         if (!el) return
-
         const start = i * unit
         const end = (i + 1) * unit
-
         if (i === 0) {
-          // First image starts visible
           gsap.set(el, { opacity: 1 })
         } else {
-          // All others start invisible
           gsap.set(el, { opacity: 0 })
-          // Fade in
           tl.to(el, { opacity: 1, duration: 0.4 }, start)
         }
-
-        // Fade out — except the last image, which zooms out instead
         if (i < IMAGES.length - 1) {
           tl.to(el, { opacity: 0, duration: 0.4 }, end - 0.05)
         }
       })
 
-      // --- Phase 2: Last image zooms out ---
       const lastImg = lastImageRef.current
       const revealEl = revealRef.current
       const headlineEl = headlineRef.current
@@ -103,42 +94,17 @@ export default function Reality() {
         const zoomStart = (IMAGES.length - 1) * unit
         const zoomEnd = IMAGES.length * unit
         const revealStart = zoomEnd
-        const revealEnd = revealStart + unit * 0.8
 
-        // Zoom out the last image
         tl.to(
           lastImg,
-          {
-            scale: 0.55,
-            opacity: 0.18,
-            filter: 'blur(6px)',
-            duration: 0.6,
-            ease: 'power2.inOut',
-          },
+          { scale: 0.55, opacity: 0.18, filter: 'blur(6px)', duration: 0.6, ease: 'power2.inOut' },
           zoomStart
         )
-
-        // Reveal text overlay fades in
-        tl.to(
-          revealEl,
-          {
-            opacity: 1,
-            duration: 0.5,
-          },
-          zoomStart + 0.3
-        )
-
-        // Headline comes up from below
+        tl.to(revealEl, { opacity: 1, duration: 0.5 }, zoomStart + 0.3)
         tl.fromTo(
           headlineEl.querySelectorAll('.line'),
           { y: 60, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.5,
-            stagger: 0.12,
-            ease: 'power3.out',
-          },
+          { y: 0, opacity: 1, duration: 0.5, stagger: 0.12, ease: 'power3.out' },
           revealStart
         )
       }
@@ -148,12 +114,7 @@ export default function Reality() {
   }, [])
 
   return (
-    <section
-      ref={sectionRef}
-      id="reality"
-      style={{ position: 'relative' }}
-    >
-      {/* Sticky viewport — stays pinned while scroll happens */}
+    <section ref={sectionRef} id="reality" style={{ position: 'relative' }}>
       <div
         ref={stickyRef}
         style={{
@@ -165,7 +126,6 @@ export default function Reality() {
           background: '#0a0a08',
         }}
       >
-        {/* ── Flashcard images stacked, all position:absolute ── */}
         {IMAGES.map((img, i) => {
           const isLast = i === IMAGES.length - 1
           return (
@@ -179,7 +139,6 @@ export default function Reality() {
                 willChange: 'opacity, transform',
               }}
             >
-              {/* Image */}
               <img
                 src={img.src}
                 alt={img.location}
@@ -193,18 +152,15 @@ export default function Reality() {
                 }}
               />
 
-              {/* Dark vignette overlay */}
               <div
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  background:
-                    'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.7) 100%)',
+                  background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.7) 100%)',
                   pointerEvents: 'none',
                 }}
               />
 
-              {/* Location label — bottom left */}
               <div
                 style={{
                   position: 'absolute',
@@ -215,14 +171,7 @@ export default function Reality() {
                   gap: '0.75rem',
                 }}
               >
-                <div
-                  style={{
-                    width: '2rem',
-                    height: '1px',
-                    background: '#c9a84c',
-                    opacity: 0.8,
-                  }}
-                />
+                <div style={{ width: '2rem', height: '1px', background: '#c9a84c', opacity: 0.8 }} />
                 <span
                   style={{
                     fontFamily: 'var(--font-body, sans-serif)',
@@ -236,7 +185,6 @@ export default function Reality() {
                 </span>
               </div>
 
-              {/* Image counter — top right */}
               <div
                 style={{
                   position: 'absolute',
@@ -255,7 +203,7 @@ export default function Reality() {
           )
         })}
 
-        {/* ── Text reveal overlay — fades in after zoom out ── */}
+        {/* ── Text reveal — fires after last image zooms out ── */}
         <div
           ref={revealRef}
           style={{
@@ -272,7 +220,6 @@ export default function Reality() {
           }}
         >
           <div ref={headlineRef} style={{ textAlign: 'center', maxWidth: '800px' }}>
-            {/* Big bold headline */}
             <div
               className="line"
               style={{
@@ -300,12 +247,9 @@ export default function Reality() {
               }}
             >
               is{' '}
-              <span style={{ color: '#c9a84c', fontStyle: 'italic' }}>
-                disappearing.
-              </span>
+              <span style={{ color: '#c9a84c', fontStyle: 'italic' }}>disappearing.</span>
             </div>
 
-            {/* Gold rule */}
             <div
               className="line"
               style={{
@@ -317,7 +261,6 @@ export default function Reality() {
               }}
             />
 
-            {/* Small description */}
             <div
               className="line"
               style={{
@@ -330,14 +273,14 @@ export default function Reality() {
             >
               One plastic bag at a time.
               <br />
-              <span style={{ color: 'rgba(201, 168, 76, 0.8)' }}>
+              <span style={{ color: 'rgba(201,168,76,0.8)' }}>
                 One Sunday at a time, we take it back.
               </span>
             </div>
           </div>
         </div>
 
-        {/* Scroll progress bar — thin gold line at bottom */}
+        {/* Scroll progress bar */}
         <div
           style={{
             position: 'absolute',
@@ -351,12 +294,7 @@ export default function Reality() {
         >
           <div
             id="reality-progress"
-            style={{
-              height: '100%',
-              width: '0%',
-              background: '#c9a84c',
-              transition: 'width 0.1s linear',
-            }}
+            style={{ height: '100%', width: '0%', background: '#c9a84c', transition: 'width 0.1s linear' }}
           />
         </div>
       </div>

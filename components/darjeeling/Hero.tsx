@@ -40,6 +40,8 @@ export default function Hero() {
   const fadeTimers    = useRef<(ReturnType<typeof setTimeout> | null)[]>([])
   const mouseRef      = useRef({ x: 0, y: 0, tx: 0, ty: 0 })
   const rafRef        = useRef<number>(0)
+  // ── Track scroll progress for combined transform ─────────────────────────
+  const scrollProgressRef = useRef(0)
 
   // ── Preload letter photos ────────────────────────────────────────────────
   useEffect(() => {
@@ -72,7 +74,7 @@ export default function Hero() {
     }, 200)
   }, [])
 
-  // ── Canvas: floating elements ────────────────────────────────────────────
+  // ── Canvas: floating elements + bg parallax ──────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -130,10 +132,28 @@ export default function Hero() {
 
     const render = () => {
       rafRef.current = requestAnimationFrame(render); t++
+
+      // Smooth mouse lerp
       mouseRef.current.x += (mouseRef.current.tx - mouseRef.current.x) * 0.04
       mouseRef.current.y += (mouseRef.current.ty - mouseRef.current.y) * 0.04
+
       gAlpha += (tAlpha - gAlpha) * 0.022
       ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      // ── 4D BG PARALLAX ───────────────────────────────────────────────────
+      // Mountains drift opposite to mouse — slow, weighty, like looking through a window
+      // scale(1.10) gives enough bleed room to never show edges at max offset
+      if (bgImgRef.current) {
+        const mx = mouseRef.current.x   // -1 to +1
+        const my = mouseRef.current.y   // -1 to +1
+        const p  = scrollProgressRef.current
+        const scrollScale = 1.10 + p * 0.06   // Ken Burns during scroll-out
+        const tx = mx * -20              // ±20px horizontal — mountains shift left/right
+        const ty = my * -9              // ±9px vertical — subtle, sky doesn't bounce
+        bgImgRef.current.style.transform = `scale(${scrollScale}) translate(${tx}px, ${ty}px)`
+      }
+      // ─────────────────────────────────────────────────────────────────────
+
       if (gAlpha < 0.01) return
       const mx = mouseRef.current.x, my = mouseRef.current.y
       const W = canvas.width, H = canvas.height
@@ -161,12 +181,13 @@ export default function Hero() {
         trigger: container, start: 'top top', end: 'bottom top', scrub: 1.2,
         onUpdate(self) {
           const p = self.progress
+          // Store scroll progress — the render loop reads this to combine with mouse
+          scrollProgressRef.current = p
           if (darjRowRef.current) gsap.set(darjRowRef.current, { rotateX: p * 18, z: -p * 120, opacity: 1 - p * 1.5 })
           if (firstRowRef.current) gsap.set(firstRowRef.current, { rotateX: p * 22, z: -p * 155, opacity: 1 - p * 1.7 })
           if (taglineRef.current)  gsap.set(taglineRef.current,  { opacity: 1 - p * 2.2 })
           if (ruleRef.current)     gsap.set(ruleRef.current,     { opacity: (1 - p * 2.5) * 0.5 })
-          // Subtle Ken Burns on bg as you scroll out
-          if (bgImgRef.current)    gsap.set(bgImgRef.current,    { scale: 1 + p * 0.06 })
+          // NOTE: bgImgRef transform is now owned by the render loop — no gsap.set here
         },
       })
     }, container)
@@ -187,7 +208,6 @@ export default function Hero() {
     const darjChars  = Array.from(darjRow.querySelectorAll('.ch'))
     const firstChars = Array.from(firstRow.querySelectorAll('.ch'))
 
-    // Initial states — subtle, not theatrical
     gsap.set(bg,         { opacity: 0 })
     gsap.set(darjChars,  { opacity: 0, y: 22, filter: 'blur(3px)' })
     gsap.set(firstChars, { opacity: 0, y: 18, filter: 'blur(3px)' })
@@ -197,58 +217,21 @@ export default function Hero() {
 
     const tl = gsap.timeline({ delay: 0.2 })
 
-    // 1. Scene breathes in — slow, cinematic
     tl.to(bg, { opacity: 1, duration: 2.0, ease: 'power1.inOut' })
-
-    // 2. Canvas elements appear
     tl.call(() => { (canvas as any).__show?.() }, [], '-=1.0')
-
-    // 3. DARJEELING — each letter emerges from darkness, barely any y movement
-    //    Long stagger so each letter feels individually placed
     tl.to(darjChars, {
-      opacity: 1,
-      y: 0,
-      filter: 'blur(0px)',
-      duration: 1.1,
-      stagger: {
-        amount: 0.7,       // total stagger time spread across all chars
-        ease: 'power2.in', // acceleration — early letters slow, last ones fast
-      },
+      opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.1,
+      stagger: { amount: 0.7, ease: 'power2.in' },
       ease: 'power2.out',
     }, '-=0.6')
-
-    // 4. Brief pause — the word lands
     tl.to({}, { duration: 0.15 })
-
-    // 5. FIRST. — arrives as one weight, slightly faster
     tl.to(firstChars, {
-      opacity: 1,
-      y: 0,
-      filter: 'blur(0px)',
-      duration: 0.9,
-      stagger: {
-        amount: 0.4,
-        ease: 'power1.in',
-      },
+      opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.9,
+      stagger: { amount: 0.4, ease: 'power1.in' },
       ease: 'power2.out',
     })
-
-    // 6. Gold rule draws in from center
-    tl.to(rule, {
-      scaleX: 1,
-      opacity: 0.5,
-      duration: 0.9,
-      ease: 'power3.out',
-    }, '-=0.3')
-
-    // 7. Tagline fades in — very slow, almost whispered
-    tl.to(tagline, {
-      opacity: 1,
-      duration: 1.0,
-      ease: 'power1.out',
-    }, '-=0.4')
-
-    // 8. Scroll cue
+    tl.to(rule, { scaleX: 1, opacity: 0.5, duration: 0.9, ease: 'power3.out' }, '-=0.3')
+    tl.to(tagline, { opacity: 1, duration: 1.0, ease: 'power1.out' }, '-=0.4')
     tl.to(scrollCue, { opacity: 1, duration: 0.6, ease: 'power1.out' }, '-=0.3')
 
     return () => { tl.kill() }
@@ -276,11 +259,9 @@ export default function Hero() {
         onMouseLeave={() => handleLetterLeave(gi)}
         style={{ position: 'relative', display: 'inline-block', cursor: 'default', willChange: 'transform, opacity, filter' }}
       >
-        {/* Letter */}
         <span style={{
           position: 'relative', zIndex: 2, display: 'block',
           color: isFirst ? '#c9a84c' : '#f0ece4',
-          // Premium deep 3D extrude — darker shadow base, lighter top highlight
           textShadow: isFirst
             ? [
                 '1px 1px 0 #8a5a0a',
@@ -291,7 +272,7 @@ export default function Hero() {
                 '6px 6px 0 #3f2604',
                 '7px 7px 12px rgba(0,0,0,0.7)',
                 '0 0 55px rgba(201,168,76,0.18)',
-                '0 -1px 0 rgba(255,220,120,0.3)',  // top highlight
+                '0 -1px 0 rgba(255,220,120,0.3)',
               ].join(', ')
             : [
                 '1px 1px 0 rgba(180,145,55,0.85)',
@@ -303,14 +284,13 @@ export default function Hero() {
                 '7px 7px 0 rgba(60,38,0,0.15)',
                 '8px 8px 16px rgba(0,0,0,0.65)',
                 '0 0 70px rgba(201,168,76,0.08)',
-                '0 -1px 0 rgba(255,255,255,0.12)', // top highlight
+                '0 -1px 0 rgba(255,255,255,0.12)',
               ].join(', '),
           userSelect: 'none',
         }}>
           {char}
         </span>
 
-        {/* Photo clipped inside letter */}
         <span style={{ position: 'absolute', inset: 0, zIndex: 3, display: 'block', overflow: 'hidden', pointerEvents: 'none' }}>
           <img
             ref={el => { imgRefs.current[gi] = el }}
@@ -344,17 +324,17 @@ export default function Hero() {
           alt="Darjeeling hills"
           style={{
             width: '100%', height: '100%', objectFit: 'cover',
-            // Slightly cooler, more cinematic — not just flat dark
             filter: 'brightness(0.38) saturate(1.2) contrast(1.05)',
             transformOrigin: 'center center',
+            // willChange tells the GPU to promote this to its own layer
+            // so the rAF transform writes are composited without layout/paint
+            willChange: 'transform',
           }}
         />
-        {/* Deep vignette — corners very dark, center breathes */}
         <div style={{
           position: 'absolute', inset: 0,
           background: 'radial-gradient(ellipse 75% 65% at 50% 38%, transparent 0%, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.82) 100%)',
         }} />
-        {/* Bottom fade to next section */}
         <div style={{
           position: 'absolute', inset: 0,
           background: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, transparent 30%, rgba(0,0,0,0.0) 60%, rgba(0,0,0,0.88) 100%)',
@@ -370,7 +350,6 @@ export default function Hero() {
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         perspective: '1000px', perspectiveOrigin: '50% 48%',
       }}>
-        {/* DARJEELING */}
         <div
           ref={darjRowRef}
           style={{
@@ -388,7 +367,6 @@ export default function Hero() {
           {DARJEELING.split('').map((ch, i) => renderLetter(ch, i, false))}
         </div>
 
-        {/* FIRST. */}
         <div
           ref={firstRowRef}
           style={{
@@ -408,13 +386,11 @@ export default function Hero() {
           {FIRST.split('').map((ch, i) => renderLetter(ch, DARJEELING.length + i, true))}
         </div>
 
-        {/* Gold rule — draws in from center */}
         <div
           ref={ruleRef}
           style={{
             width: 'clamp(2.5rem, 5.5vw, 4.5rem)',
             height: '1px',
-            // Two-tone: brighter center, fades at edges
             background: 'linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.4) 20%, rgba(220,185,90,0.9) 50%, rgba(201,168,76,0.4) 80%, transparent 100%)',
             margin: 'clamp(1rem, 2.2vw, 1.7rem) 0',
             transformOrigin: 'center',
@@ -422,7 +398,6 @@ export default function Hero() {
           }}
         />
 
-        {/* Tagline */}
         <p
           ref={taglineRef}
           style={{
@@ -430,7 +405,6 @@ export default function Hero() {
             fontSize: 'clamp(0.62rem, 1.2vw, 0.85rem)',
             letterSpacing: '0.32em',
             textTransform: 'uppercase',
-            // Warm white — not cold grey
             color: 'rgba(240,230,210,0.42)',
             margin: 0, textAlign: 'center',
             willChange: 'opacity',
@@ -439,7 +413,6 @@ export default function Hero() {
           There&apos;s a reason for that name.
         </p>
 
-        {/* Scroll cue */}
         <div
           ref={scrollCueRef}
           style={{

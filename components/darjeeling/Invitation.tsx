@@ -70,6 +70,8 @@ function WayCard({ way, index }: { way: typeof WAYS[0]; index: number }) {
         flexDirection: 'column',
         gap: '1.2rem',
         transition: 'border-color 0.4s, background 0.4s',
+        // Mobile: fixed width so cards are consistent in the scroll row
+        flexShrink: 0,
       }}
     >
       {/* "Start here" badge on primary */}
@@ -186,7 +188,7 @@ export default function Invitation() {
         justifyContent: 'center',
       }}
     >
-      {/* ── BACKGROUND — warmest, most hopeful ── */}
+      {/* ── BACKGROUND ── */}
       <motion.div style={{ position: 'absolute', inset: '-10%', y: bgY, zIndex: 0 }}>
         <video
           autoPlay muted loop playsInline
@@ -200,7 +202,6 @@ export default function Invitation() {
         </video>
       </motion.div>
 
-      {/* Overlays — slightly warmer than other sections */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: 1,
         background: 'linear-gradient(to bottom, rgba(26,18,8,0.82) 0%, rgba(26,18,8,0.45) 45%, rgba(26,18,8,0.88) 100%)',
@@ -220,8 +221,6 @@ export default function Invitation() {
 
         {/* ── HEADLINE ── */}
         <div ref={headRef} style={{ textAlign: 'center', marginBottom: 'clamp(4rem, 8vw, 7rem)' }}>
-
-          {/* Label */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={inView ? { opacity: 1 } : {}}
@@ -242,7 +241,6 @@ export default function Invitation() {
             <div style={{ width: 28, height: 1, background: 'var(--tea-gold)' }} />
           </motion.div>
 
-          {/* Main line — largest text after the bleed */}
           <div style={{ overflow: 'hidden', marginBottom: '0.6rem' }}>
             <motion.h2
               initial={{ y: '100%', opacity: 0 }}
@@ -280,7 +278,6 @@ export default function Invitation() {
             </motion.h2>
           </div>
 
-          {/* Sub-question */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -312,18 +309,19 @@ export default function Invitation() {
         </div>
 
         {/* ── THREE WAYS ── */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 'clamp(1rem, 2vw, 1.5rem)',
-          marginBottom: 'clamp(4rem, 8vw, 6rem)',
-        }}>
+        {/*
+          Desktop: CSS grid, 3 equal columns — unchanged.
+          Mobile: horizontal scroll container, each card is 82vw wide,
+                  snap-scrolls so the next card peeks at the edge (swipe hint).
+                  No JS needed — pure CSS scroll snap.
+        */}
+        <div className="ways-grid" style={{ marginBottom: 'clamp(4rem, 8vw, 6rem)' }}>
           {WAYS.map((way, i) => (
             <WayCard key={i} way={way} index={i} />
           ))}
         </div>
 
-        {/* ── BOTTOM — Instagram + closing line ── */}
+        {/* ── BOTTOM ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -378,17 +376,53 @@ export default function Invitation() {
 
       {/* ── RESPONSIVE ── */}
       <style>{`
+        /* ── Desktop: 3-column grid — unchanged ── */
+        .ways-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: clamp(1rem, 2vw, 1.5rem);
+        }
+
+        /* ── Tablet: 2 cols, first card full width ── */
         @media (max-width: 900px) {
-          #invitation-ways {
-            grid-template-columns: 1fr 1fr !important;
+          .ways-grid {
+            grid-template-columns: 1fr 1fr;
           }
-          #invitation-ways > div:first-child {
+          .ways-grid > div:first-child {
             grid-column: 1 / -1;
           }
         }
-        @media (max-width: 560px) {
-          #invitation-ways {
-            grid-template-columns: 1fr !important;
+
+        /* ── Mobile: horizontal swipe row ── */
+        @media (max-width: 640px) {
+          .ways-grid {
+            /* Switch from grid to flex horizontal scroll */
+            display: flex !important;
+            flex-direction: row !important;
+            overflow-x: auto;
+            overflow-y: visible;
+            gap: 12px !important;
+            /* Scroll snap — each card snaps into place */
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            /* Pull it edge-to-edge ignoring the section padding */
+            margin-left: calc(-1 * var(--gutter, 1.5rem));
+            margin-right: calc(-1 * var(--gutter, 1.5rem));
+            padding-left: var(--gutter, 1.5rem);
+            padding-right: var(--gutter, 1.5rem);
+            /* Hide scrollbar — swipe gesture only */
+            scrollbar-width: none;
+          }
+          .ways-grid::-webkit-scrollbar {
+            display: none;
+          }
+          /* Each card: 82vw wide so the next card peeks 
+             giving a clear swipe hint */
+          .ways-grid > div {
+            min-width: 82vw !important;
+            width: 82vw !important;
+            scroll-snap-align: start;
+            flex-shrink: 0;
           }
         }
       `}</style>

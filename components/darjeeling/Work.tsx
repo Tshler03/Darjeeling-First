@@ -9,28 +9,32 @@ const ACTIVITIES = [
     num: '01',
     title: 'Hill & Trail Cleanups',
     body: 'From Tiger Hill to Happy Valley — walking the trails tourists love and locals cherish, carrying back what should never have been left behind.',
-    video: 'https://videos.pexels.com/video-files/4763824/4763824-uhd_2560_1440_24fps.mp4',
+    // Instagram post — Hill cleanup
+    instaId: 'DVQzxy8ATT1',
     poster: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=900&q=80',
   },
   {
     num: '02',
     title: 'Street & Market Drives',
     body: 'The bazaars, the bus stands, the morning markets — the beating heart of Darjeeling. Keeping them breathing clean.',
-    video: 'https://videos.pexels.com/video-files/5728904/5728904-uhd_2560_1440_25fps.mp4',
+    // Instagram post — Streets
+    instaId: 'DWg_WmMkrPo',
     poster: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=900&q=80',
   },
   {
     num: '03',
     title: 'Community Mobilisation',
     body: 'Knocking on doors, posting in groups, convincing one neighbour at a time. The hardest work — and the most important.',
-    video: 'https://videos.pexels.com/video-files/4763821/4763821-uhd_2560_1440_24fps.mp4',
+    // Instagram post — Community
+    instaId: 'DVJKXYBkub_',
     poster: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=80',
   },
   {
     num: '04',
     title: 'Documenting the Truth',
     body: "Before and after. Trash mountains and clean slopes. Evidence of what's been done is the strongest call to action there is.",
-    video: 'https://videos.pexels.com/video-files/3571264/3571264-uhd_2560_1440_25fps.mp4',
+    // Instagram post — Truth / documenting
+    instaId: 'DSU4m8pEgkN',
     poster: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=900&q=80',
   },
 ]
@@ -43,27 +47,21 @@ function BeforeAfterWipe() {
   const hasInteracted = useRef(false)
   const inView        = useInView(containerRef, { once: true, margin: '-80px' })
 
-  // Auto-demo on first scroll-into-view
   useEffect(() => {
     if (!inView || hasInteracted.current) return
     let current = 50
-    const target  = 30   // drift left to show more "before" first
-    const target2 = 65   // then settle showing mostly "after"
+    const target  = 30
+    const target2 = 65
 
-    // Phase 1: drift to show before
     const t1 = setInterval(() => {
       current -= 0.35
       setPct(current)
       if (current <= target) {
         clearInterval(t1)
-        // Phase 2: drift right to reveal colour
         const t2 = setInterval(() => {
           current += 0.28
           setPct(current)
-          if (current >= target2) {
-            clearInterval(t2)
-            // Settle at 65 — showing mostly coloured "after"
-          }
+          if (current >= target2) clearInterval(t2)
         }, 16)
       }
     }, 16)
@@ -71,7 +69,6 @@ function BeforeAfterWipe() {
     return () => clearInterval(t1)
   }, [inView])
 
-  // ── Unified pointer position calculator ─────────────────────────────────
   const calcPct = useCallback((clientX: number) => {
     const el = containerRef.current
     if (!el) return
@@ -80,17 +77,13 @@ function BeforeAfterWipe() {
     setPct(Math.max(2, Math.min(98, raw)))
   }, [])
 
-  // ── Mouse events ─────────────────────────────────────────────────────────
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     isDragging.current    = true
     hasInteracted.current = true
     calcPct(e.clientX)
-
-    const onMove = (ev: MouseEvent) => {
-      if (isDragging.current) calcPct(ev.clientX)
-    }
-    const onUp = () => {
+    const onMove = (ev: MouseEvent) => { if (isDragging.current) calcPct(ev.clientX) }
+    const onUp   = () => {
       isDragging.current = false
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
@@ -99,12 +92,10 @@ function BeforeAfterWipe() {
     window.addEventListener('mouseup', onUp)
   }, [calcPct])
 
-  // ── Touch events ─────────────────────────────────────────────────────────
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     isDragging.current    = true
     hasInteracted.current = true
     calcPct(e.touches[0].clientX)
-
     const onMove = (ev: TouchEvent) => {
       ev.preventDefault()
       if (isDragging.current) calcPct(ev.touches[0].clientX)
@@ -120,25 +111,19 @@ function BeforeAfterWipe() {
 
   return (
     <div ref={containerRef}>
-      {/* Instruction */}
       <motion.p
         initial={{ opacity: 0 }}
         animate={inView ? { opacity: 1 } : {}}
         transition={{ duration: 0.8, delay: 0.3 }}
         style={{
-          textAlign: 'center',
-          fontSize: '0.62rem',
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          color: 'var(--forest-brown)',
-          marginBottom: '1.2rem',
-          userSelect: 'none',
+          textAlign: 'center', fontSize: '0.62rem', letterSpacing: '0.18em',
+          textTransform: 'uppercase', color: 'var(--forest-brown)',
+          marginBottom: '1.2rem', userSelect: 'none',
         }}
       >
         ← drag to reveal the difference →
       </motion.p>
 
-      {/* Wipe stage */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -146,151 +131,37 @@ function BeforeAfterWipe() {
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
         style={{
-          position: 'relative',
-          width: '100%',
-          aspectRatio: '16/9',
-          overflow: 'hidden',
-          cursor: 'ew-resize',
-          userSelect: 'none',
-          touchAction: 'none',
-          borderRadius: '4px',
+          position: 'relative', width: '100%', aspectRatio: '16/9',
+          overflow: 'hidden', cursor: 'ew-resize',
+          userSelect: 'none', touchAction: 'none', borderRadius: '4px',
         }}
       >
-        {/* ── AFTER layer (right side) — full colour, always behind ──── */}
         <img
-          src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&q=85"
+          src="After.PNG"
           alt="After — clean Darjeeling"
           draggable={false}
-          style={{
-            position: 'absolute', inset: 0,
-            width: '100%', height: '100%',
-            objectFit: 'cover',
-            userSelect: 'none',
-            pointerEvents: 'none',
-          }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', userSelect: 'none', pointerEvents: 'none' }}
         />
-
-        {/* ── BEFORE layer (left side) — same image, black & white ───── */}
-        {/* We clip it so only the left portion is visible */}
-        <div
-          style={{
-            position: 'absolute', inset: 0,
-            clipPath: `inset(0 ${100 - pct}% 0 0)`,
-            zIndex: 2,
-            willChange: 'clip-path',
-          }}
-        >
+        <div style={{ position: 'absolute', inset: 0, clipPath: `inset(0 ${100 - pct}% 0 0)`, zIndex: 2, willChange: 'clip-path' }}>
           <img
-            src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&q=85"
-            alt="Before — same scene, black & white"
+            src="Before.PNG"
+            alt="Before"
             draggable={false}
-            style={{
-              width: '100%', height: '100%',
-              objectFit: 'cover',
-              // Black and white + slightly darker + slight blue-cold tone
-              filter: 'grayscale(1) brightness(0.65) contrast(1.15) sepia(0.08)',
-              userSelect: 'none',
-              pointerEvents: 'none',
-            }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(1) brightness(0.65) contrast(1.15) sepia(0.08)', userSelect: 'none', pointerEvents: 'none' }}
           />
-          {/* Subtle desaturated overlay for extra coldness */}
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'rgba(10,18,28,0.22)',
-            pointerEvents: 'none',
-          }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,18,28,0.22)', pointerEvents: 'none' }} />
         </div>
-
-        {/* ── Divider line ─────────────────────────────────────────────── */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0, bottom: 0,
-            left: `${pct}%`,
-            transform: 'translateX(-50%)',
-            zIndex: 4,
-            width: '2px',
-            background: 'rgba(245,237,216,0.95)',
-            boxShadow: '0 0 8px rgba(255,255,255,0.4)',
-            pointerEvents: 'none',
-            willChange: 'left',
-          }}
-        />
-
-        {/* ── Handle circle ────────────────────────────────────────────── */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: `${pct}%`,
-            transform: 'translate(-50%, -50%)',
-            zIndex: 5,
-            width: 52,
-            height: 52,
-            borderRadius: '50%',
-            background: 'rgba(245,237,216,0.97)',
-            boxShadow: '0 0 0 3px rgba(245,237,216,0.3), 0 6px 24px rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            pointerEvents: 'none',
-            willChange: 'left',
-          }}
-        >
+        <div style={{ position: 'absolute', top: 0, bottom: 0, left: `${pct}%`, transform: 'translateX(-50%)', zIndex: 4, width: '2px', background: 'rgba(245,237,216,0.95)', boxShadow: '0 0 8px rgba(255,255,255,0.4)', pointerEvents: 'none', willChange: 'left' }} />
+        <div style={{ position: 'absolute', top: '50%', left: `${pct}%`, transform: 'translate(-50%, -50%)', zIndex: 5, width: 52, height: 52, borderRadius: '50%', background: 'rgba(245,237,216,0.97)', boxShadow: '0 0 0 3px rgba(245,237,216,0.3), 0 6px 24px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', willChange: 'left' }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M9 12l-6 0M9 12L6 9M9 12L6 15" stroke="#1A1208" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
             <path d="M15 12l6 0M15 12L18 9M15 12L18 15" stroke="#1A1208" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
-
-        {/* ── Labels ───────────────────────────────────────────────────── */}
-        <div style={{
-          position: 'absolute', bottom: '1rem', left: '1rem', zIndex: 6,
-          background: 'rgba(10,10,10,0.75)',
-          backdropFilter: 'blur(8px)',
-          color: 'rgba(200,200,200,0.9)',
-          fontSize: '0.58rem', fontWeight: 700,
-          letterSpacing: '0.18em', textTransform: 'uppercase',
-          padding: '0.3rem 0.75rem',
-          borderRadius: '2px',
-          opacity: pct > 12 ? 1 : 0,
-          transition: 'opacity 0.3s',
-          pointerEvents: 'none',
-        }}>
-          Before
-        </div>
-
-        <div style={{
-          position: 'absolute', bottom: '1rem', right: '1rem', zIndex: 6,
-          background: 'rgba(45,74,45,0.82)',
-          backdropFilter: 'blur(8px)',
-          color: 'rgba(160,220,140,0.95)',
-          fontSize: '0.58rem', fontWeight: 700,
-          letterSpacing: '0.18em', textTransform: 'uppercase',
-          padding: '0.3rem 0.75rem',
-          borderRadius: '2px',
-          opacity: pct < 88 ? 1 : 0,
-          transition: 'opacity 0.3s',
-          pointerEvents: 'none',
-        }}>
-          After
-        </div>
-
-        {/* ── Colour meter — thin bar at bottom ────────────────────────── */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px',
-          background: 'rgba(255,255,255,0.08)',
-          zIndex: 6,
-          pointerEvents: 'none',
-        }}>
-          {/* Right side = colour */}
-          <div style={{
-            position: 'absolute', top: 0, right: 0,
-            width: `${100 - pct}%`,
-            height: '100%',
-            background: 'linear-gradient(90deg, rgba(90,160,70,0.5), rgba(130,200,90,0.9))',
-            transition: 'width 0.05s linear',
-          }} />
+        <div style={{ position: 'absolute', bottom: '1rem', left: '1rem', zIndex: 6, background: 'rgba(10,10,10,0.75)', backdropFilter: 'blur(8px)', color: 'rgba(200,200,200,0.9)', fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '0.3rem 0.75rem', borderRadius: '2px', opacity: pct > 12 ? 1 : 0, transition: 'opacity 0.3s', pointerEvents: 'none' }}>Before</div>
+        <div style={{ position: 'absolute', bottom: '1rem', right: '1rem', zIndex: 6, background: 'rgba(45,74,45,0.82)', backdropFilter: 'blur(8px)', color: 'rgba(160,220,140,0.95)', fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '0.3rem 0.75rem', borderRadius: '2px', opacity: pct < 88 ? 1 : 0, transition: 'opacity 0.3s', pointerEvents: 'none' }}>After</div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: 'rgba(255,255,255,0.08)', zIndex: 6, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', top: 0, right: 0, width: `${100 - pct}%`, height: '100%', background: 'linear-gradient(90deg, rgba(90,160,70,0.5), rgba(130,200,90,0.9))', transition: 'width 0.05s linear' }} />
         </div>
       </motion.div>
     </div>
@@ -299,16 +170,9 @@ function BeforeAfterWipe() {
 
 // ─── Single activity row ───────────────────────────────────────────────────
 function ActivityRow({ activity, index }: { activity: typeof ACTIVITIES[0]; index: number }) {
-  const ref      = useRef<HTMLDivElement>(null)
-  const inView   = useInView(ref, { once: true, margin: '-60px' })
+  const ref    = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-60px' })
   const [hovered, setHovered] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
-
-  useEffect(() => {
-    if (!videoRef.current) return
-    if (hovered) videoRef.current.play().catch(() => {})
-    else         videoRef.current.pause()
-  }, [hovered])
 
   return (
     <motion.div
@@ -329,6 +193,7 @@ function ActivityRow({ activity, index }: { activity: typeof ACTIVITIES[0]; inde
         cursor: 'default',
       }}
     >
+      {/* Hover background sweep */}
       <div style={{
         position: 'absolute', inset: 0,
         background: 'rgba(61,43,14,0.3)',
@@ -338,6 +203,7 @@ function ActivityRow({ activity, index }: { activity: typeof ACTIVITIES[0]; inde
         zIndex: 0,
       }} />
 
+      {/* Number */}
       <div style={{
         position: 'relative', zIndex: 1,
         fontFamily: 'var(--ff-display)',
@@ -349,6 +215,7 @@ function ActivityRow({ activity, index }: { activity: typeof ACTIVITIES[0]; inde
         {activity.num}
       </div>
 
+      {/* Text */}
       <div style={{ position: 'relative', zIndex: 1 }}>
         <h3 style={{
           fontFamily: 'var(--ff-display)',
@@ -363,16 +230,49 @@ function ActivityRow({ activity, index }: { activity: typeof ACTIVITIES[0]; inde
         }}>{activity.body}</p>
       </div>
 
+      {/* Instagram embed — appears on hover instead of video ─────────────
+          Wraps the embed in a link so clicking opens the post on Instagram.
+          The iframe loads the official Instagram embed which shows the
+          real thumbnail / reel preview without any API key needed.
+      ──────────────────────────────────────────────────────────────────── */}
       <div style={{
-        position: 'relative', zIndex: 1, overflow: 'hidden', aspectRatio: '16/9',
+        position: 'relative', zIndex: 1,
+        overflow: 'hidden',
+        aspectRatio: '9/16',          // reels are portrait
         opacity: hovered ? 1 : 0,
         transform: hovered ? 'scale(1)' : 'scale(0.95)',
         transition: 'opacity 0.4s, transform 0.4s',
+        borderRadius: '8px',
+        background: '#000',
       }}>
-        <video
-          ref={videoRef} src={activity.video} poster={activity.poster}
-          muted loop playsInline
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: 'saturate(0.7) brightness(0.8)' }}
+        {/* Only render iframe when hovered to avoid 4 simultaneous loads */}
+        {hovered && (
+          <iframe
+            src={`https://www.instagram.com/p/${activity.instaId}/embed/`}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              display: 'block',
+            }}
+            allowFullScreen
+            loading="lazy"
+            title={activity.title}
+          />
+        )}
+
+        {/* Clickable overlay — opens Instagram post in new tab */}
+        <a
+          href={`https://www.instagram.com/p/${activity.instaId}/`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            position: 'absolute', inset: 0,
+            zIndex: 2,
+            // Transparent — just captures the click to open Instagram
+            background: 'transparent',
+          }}
+          aria-label={`View ${activity.title} on Instagram`}
         />
       </div>
     </motion.div>

@@ -9,14 +9,14 @@ const CORE = [
     tag: 'The Founders',
     quote: '"We got tired of talking about it."',
     body: 'The ones who started this with one garbage bag and a WhatsApp group. Same school. Same hills. Same rage.',
-    img: 'https://images.unsplash.com/photo-1519764622345-23439dd774f7?w=700&q=85',
+    img: 'Founders.jpeg',
     location: 'Darjeeling Town',
   },
   {
     tag: 'Weekend Warriors',
     quote: '"Every Sunday. No matter what."',
     body: 'Students, teachers, shopkeepers, chai-wallahs — all equal on cleanup day. That is the magic of this thing.',
-    img: 'https://images.unsplash.com/photo-1593113630400-ea4288922559?w=700&q=85',
+    img: 'Weekend.jpeg',
     location: 'Tiger Hill Road',
     tall: true,
   },
@@ -24,19 +24,21 @@ const CORE = [
     tag: 'Next Generation',
     quote: '"This is our home. We stay and fight."',
     body: "They've found something most people search their whole lives for — a reason to stay, and protect where they came from.",
-    img: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=700&q=85',
+    img: 'Next.jpeg',
     location: 'Happy Valley',
   },
 ]
 
 // Instagram-style community photo strip
 const COMMUNITY = [
-  'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=500&q=80',
-  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&q=80',
-  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80',
-  'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&q=80',
-  'https://images.unsplash.com/photo-1567113463300-102a7eb3cb26?w=500&q=80',
-  'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=500&q=80',
+  '/Comment1.png',
+  '/Comment2.png',
+  '/Comment3.png',
+  '/Comment4.png',
+  '/Comment5.png',
+  '/Comment6.png',
+  '/Comment7.png',
+  '/Comment8.png',
 ]
 
 // ─── Portrait card ─────────────────────────────────────────────────────────
