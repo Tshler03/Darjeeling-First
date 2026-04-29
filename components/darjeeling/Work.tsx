@@ -9,7 +9,6 @@ const ACTIVITIES = [
     num: '01',
     title: 'Hill & Trail Cleanups',
     body: 'From Tiger Hill to Happy Valley — walking the trails tourists love and locals cherish, carrying back what should never have been left behind.',
-    // Instagram post — Hill cleanup
     instaId: 'DVQzxy8ATT1',
     poster: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=900&q=80',
   },
@@ -17,7 +16,6 @@ const ACTIVITIES = [
     num: '02',
     title: 'Street & Market Drives',
     body: 'The bazaars, the bus stands, the morning markets — the beating heart of Darjeeling. Keeping them breathing clean.',
-    // Instagram post — Streets
     instaId: 'DWg_WmMkrPo',
     poster: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=900&q=80',
   },
@@ -25,7 +23,6 @@ const ACTIVITIES = [
     num: '03',
     title: 'Community Mobilisation',
     body: 'Knocking on doors, posting in groups, convincing one neighbour at a time. The hardest work — and the most important.',
-    // Instagram post — Community
     instaId: 'DVJKXYBkub_',
     poster: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=80',
   },
@@ -33,7 +30,6 @@ const ACTIVITIES = [
     num: '04',
     title: 'Documenting the Truth',
     body: "Before and after. Trash mountains and clean slopes. Evidence of what's been done is the strongest call to action there is.",
-    // Instagram post — Truth / documenting
     instaId: 'DSU4m8pEgkN',
     poster: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=900&q=80',
   },
@@ -175,107 +171,102 @@ function ActivityRow({ activity, index }: { activity: typeof ACTIVITIES[0]; inde
   const [hovered, setHovered] = useState(false)
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.9, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '64px 1fr 200px',
-        gap: '2rem',
-        alignItems: 'center',
-        padding: '2rem 0',
-        borderTop: '1px solid rgba(200,151,58,0.08)',
-        position: 'relative',
-        cursor: 'default',
-      }}
-    >
-      {/* Hover background sweep */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'rgba(61,43,14,0.3)',
-        transform: hovered ? 'scaleX(1)' : 'scaleX(0)',
-        transformOrigin: 'left',
-        transition: 'transform 0.5s cubic-bezier(0.76,0,0.24,1)',
-        zIndex: 0,
-      }} />
+    <>
+      <style>{`
+        @media (max-width: 640px) {
+          .activity-body-${index} { display: none !important; }
+        }
+      `}</style>
 
-      {/* Number */}
-      <div style={{
-        position: 'relative', zIndex: 1,
-        fontFamily: 'var(--ff-display)',
-        fontSize: '0.9rem', fontWeight: 700,
-        color: hovered ? 'var(--tea-gold)' : 'rgba(200,151,58,0.25)',
-        letterSpacing: '0.08em',
-        transition: 'color 0.3s',
-      }}>
-        {activity.num}
-      </div>
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: 40 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.9, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '64px 1fr 200px',
+          gap: '2rem',
+          alignItems: 'center',
+          padding: '2rem 0',
+          borderTop: '1px solid rgba(200,151,58,0.08)',
+          position: 'relative',
+          cursor: 'default',
+        }}
+      >
+        {/* Hover background sweep */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'rgba(61,43,14,0.3)',
+          transform: hovered ? 'scaleX(1)' : 'scaleX(0)',
+          transformOrigin: 'left',
+          transition: 'transform 0.5s cubic-bezier(0.76,0,0.24,1)',
+          zIndex: 0,
+        }} />
 
-      {/* Text */}
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <h3 style={{
+        {/* Number */}
+        <div style={{
+          position: 'relative', zIndex: 1,
           fontFamily: 'var(--ff-display)',
-          fontSize: 'clamp(1.2rem, 2.5vw, 1.8rem)', fontWeight: 700,
-          color: hovered ? 'var(--warm-amber)' : 'var(--cream)',
-          marginBottom: '0.4rem', lineHeight: 1.1,
+          fontSize: '0.9rem', fontWeight: 700,
+          color: hovered ? 'var(--tea-gold)' : 'rgba(200,151,58,0.25)',
+          letterSpacing: '0.08em',
           transition: 'color 0.3s',
-        }}>{activity.title}</h3>
-        <p style={{
-          fontSize: 'clamp(0.8rem, 1vw, 0.9rem)', lineHeight: 1.7,
-          color: 'var(--mist-green)', maxWidth: '520px',
-        }}>{activity.body}</p>
-      </div>
+        }}>
+          {activity.num}
+        </div>
 
-      {/* Instagram embed — appears on hover instead of video ─────────────
-          Wraps the embed in a link so clicking opens the post on Instagram.
-          The iframe loads the official Instagram embed which shows the
-          real thumbnail / reel preview without any API key needed.
-      ──────────────────────────────────────────────────────────────────── */}
-      <div style={{
-        position: 'relative', zIndex: 1,
-        overflow: 'hidden',
-        aspectRatio: '9/16',          // reels are portrait
-        opacity: hovered ? 1 : 0,
-        transform: hovered ? 'scale(1)' : 'scale(0.95)',
-        transition: 'opacity 0.4s, transform 0.4s',
-        borderRadius: '8px',
-        background: '#000',
-      }}>
-        {/* Only render iframe when hovered to avoid 4 simultaneous loads */}
-        {hovered && (
-          <iframe
-            src={`https://www.instagram.com/p/${activity.instaId}/embed/`}
+        {/* Text */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h3 style={{
+            fontFamily: 'var(--ff-display)',
+            fontSize: 'clamp(1.2rem, 2.5vw, 1.8rem)', fontWeight: 700,
+            color: hovered ? 'var(--warm-amber)' : 'var(--cream)',
+            marginBottom: '0.4rem', lineHeight: 1.1,
+            transition: 'color 0.3s',
+          }}>{activity.title}</h3>
+          <p
+            className={`activity-body-${index}`}
             style={{
-              width: '100%',
-              height: '100%',
-              border: 'none',
-              display: 'block',
+              fontSize: 'clamp(0.8rem, 1vw, 0.9rem)', lineHeight: 1.7,
+              color: 'var(--mist-green)', maxWidth: '520px',
             }}
-            allowFullScreen
-            loading="lazy"
-            title={activity.title}
-          />
-        )}
+          >{activity.body}</p>
+        </div>
 
-        {/* Clickable overlay — opens Instagram post in new tab */}
-        <a
-          href={`https://www.instagram.com/p/${activity.instaId}/`}
-          target="_blank"
-          rel="noopener noreferrer"
+        {/* Instagram embed */}
+        <div
           style={{
-            position: 'absolute', inset: 0,
-            zIndex: 2,
-            // Transparent — just captures the click to open Instagram
-            background: 'transparent',
-          }}
-          aria-label={`View ${activity.title} on Instagram`}
-        />
-      </div>
-    </motion.div>
+            position: 'relative', zIndex: 1,
+            overflow: 'hidden',
+            aspectRatio: '9/16',
+            opacity: hovered ? 1 : 0,
+            transform: hovered ? 'scale(1)' : 'scale(0.95)',
+            transition: 'opacity 0.4s, transform 0.4s',
+            borderRadius: '8px',
+            background: '#000',
+          }}>
+          {hovered && (
+            <iframe
+              src={`https://www.instagram.com/p/${activity.instaId}/embed/`}
+              style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+              allowFullScreen
+              loading="lazy"
+              title={activity.title}
+            />
+          )}
+          <a
+            href={`https://www.instagram.com/p/${activity.instaId}/`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'transparent' }}
+            aria-label={`View ${activity.title} on Instagram`}
+          />
+        </div>
+      </motion.div>
+    </>
   )
 }
 

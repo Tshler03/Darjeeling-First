@@ -5,15 +5,27 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 const NAV_LINKS = [
   { label: 'Reality',    href: '#reality' },
-  { label: 'The Story',  href: '#beginning' },
+  { label: 'The Story',  href: '#the-story' },
   { label: 'The Work',   href: '#work' },
   { label: 'The People', href: '#people' },
 ]
 
+const FOOTER_NAV = [
+  { label: 'Reality',    href: '#reality' },
+  { label: 'The Story',  href: '#the-story' },
+  { label: 'The Work',   href: '#work' },
+  { label: 'The Proof',  href: '#proof' },
+  { label: 'The People', href: '#people' },
+  { label: 'Join',       href: '#invitation' },
+]
+
+const IG_URL    = 'https://www.instagram.com/darjeeelingfirst/'
+const IG_DM_URL = 'https://ig.me/m/darjeeelingfirst'
+
 // ─── NAV ───────────────────────────────────────────────────────────────────
 export function Nav() {
-  const [scrolled,     setScrolled]     = useState(false)
-  const [menuOpen,     setMenuOpen]     = useState(false)
+  const [scrolled,      setScrolled]      = useState(false)
+  const [menuOpen,      setMenuOpen]      = useState(false)
   const [activeSection, setActiveSection] = useState('')
 
   useEffect(() => {
@@ -22,14 +34,12 @@ export function Nav() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Close menu on escape
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false) }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  // Track active section
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => {
@@ -70,24 +80,16 @@ export function Nav() {
             color: 'var(--cream)', textDecoration: 'none',
           }}
         >
-          {/* Animated diamond */}
-          <motion.div
-            animate={{ rotate: [0, 90, 0] }}
-            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-            style={{
-              width: 18, height: 18,
-              background: 'var(--tea-gold)',
-              clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-            }}
+          <img
+            src="/Logo.jpeg"
+            alt="Darjeeling First"
+            style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: '50%' }}
           />
           Darjeeling First
         </a>
 
         {/* Desktop links */}
-        <ul style={{
-          display: 'flex', gap: '2.5rem',
-          listStyle: 'none', margin: 0, padding: 0,
-        }}
+        <ul style={{ display: 'flex', gap: '2.5rem', listStyle: 'none', margin: 0, padding: 0 }}
           className="nav-desktop-links"
         >
           {NAV_LINKS.map(link => (
@@ -100,8 +102,7 @@ export function Nav() {
                   color: activeSection === link.href.slice(1)
                     ? 'var(--warm-amber)'
                     : 'rgba(200,216,192,0.55)',
-                  textDecoration: 'none',
-                  transition: 'color 0.3s',
+                  textDecoration: 'none', transition: 'color 0.3s',
                   borderBottom: activeSection === link.href.slice(1)
                     ? '1px solid rgba(232,199,122,0.4)' : '1px solid transparent',
                   paddingBottom: '2px',
@@ -120,18 +121,19 @@ export function Nav() {
           ))}
         </ul>
 
-        {/* Right side: CTA + hamburger */}
+        {/* Right: CTA + hamburger */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
           <a
-            href="#invitation"
+            href={IG_DM_URL}
+            target="_blank"
+            rel="noreferrer"
             onMouseEnter={e => (e.currentTarget.style.background = 'var(--warm-amber)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'var(--tea-gold)')}
             style={{
               fontFamily: 'var(--ff-body)', fontSize: '0.68rem',
               fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase',
               color: 'var(--midnight)', background: 'var(--tea-gold)',
-              padding: '0.6rem 1.3rem',
-              transition: 'background 0.25s',
+              padding: '0.6rem 1.3rem', transition: 'background 0.25s',
             }}
             className="nav-cta"
           >
@@ -144,10 +146,8 @@ export function Nav() {
             aria-label="Menu"
             className="nav-hamburger"
             style={{
-              display: 'none',
-              flexDirection: 'column', gap: '5px',
-              background: 'none', border: 'none',
-              cursor: 'pointer', padding: '4px',
+              display: 'none', flexDirection: 'column', gap: '5px',
+              background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
             }}
           >
             {[0, 1, 2].map(i => (
@@ -211,7 +211,9 @@ export function Nav() {
               </motion.a>
             ))}
             <motion.a
-              href="#invitation"
+              href={IG_DM_URL}
+              target="_blank"
+              rel="noreferrer"
               onClick={() => setMenuOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -229,7 +231,6 @@ export function Nav() {
         )}
       </AnimatePresence>
 
-      {/* ── RESPONSIVE ── */}
       <style>{`
         @media (max-width: 768px) {
           .nav-desktop-links { display: none !important; }
@@ -266,10 +267,11 @@ export function Footer() {
             fontSize: '1.05rem', color: 'var(--cream)',
             marginBottom: '0.9rem',
           }}>
-            <div style={{
-              width: 18, height: 18, background: 'var(--tea-gold)',
-              clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-            }} />
+            <img
+              src="/Logo.jpeg"
+              alt="Darjeeling First"
+              style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: '50%' }}
+            />
             Darjeeling First
           </div>
           <p style={{
@@ -280,7 +282,7 @@ export function Footer() {
             &ldquo;Group of friends coming from same school of thought!&rdquo;
           </p>
           <a
-            href="https://instagram.com/darjeelingfirst"
+            href={IG_URL}
             target="_blank" rel="noreferrer"
             onMouseEnter={e => (e.currentTarget.style.color = 'var(--tea-gold)')}
             onMouseLeave={e => (e.currentTarget.style.color = 'var(--forest-brown)')}
@@ -304,10 +306,10 @@ export function Footer() {
             }}>
               Navigate
             </h4>
-            {['Reality', 'The Story', 'The Work', 'The Proof', 'The People', 'Join'].map(l => (
+            {FOOTER_NAV.map(link => (
               <a
-                key={l}
-                href={`#${l.toLowerCase().replace(/ /g, '-').replace('the-', '')}`}
+                key={link.label}
+                href={link.href}
                 onMouseEnter={e => (e.currentTarget.style.color = 'var(--mist-green)')}
                 onMouseLeave={e => (e.currentTarget.style.color = 'var(--forest-brown)')}
                 style={{
@@ -315,7 +317,7 @@ export function Footer() {
                   textDecoration: 'none', transition: 'color 0.25s',
                 }}
               >
-                {l}
+                {link.label}
               </a>
             ))}
           </div>
@@ -328,14 +330,26 @@ export function Footer() {
             }}>
               Connect
             </h4>
-            <a href="https://instagram.com/darjeelingfirst" target="_blank" rel="noreferrer"
+            <a
+              href={IG_URL}
+              target="_blank" rel="noreferrer"
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--mist-green)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'var(--forest-brown)')}
               style={{ fontSize: '0.83rem', color: 'var(--forest-brown)', textDecoration: 'none', transition: 'color 0.25s' }}
             >
               Instagram
             </a>
-            <a href="mailto:hello@darjeelingfirst.org"
+            <a
+              href={IG_DM_URL}
+              target="_blank" rel="noreferrer"
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--mist-green)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--forest-brown)')}
+              style={{ fontSize: '0.83rem', color: 'var(--forest-brown)', textDecoration: 'none', transition: 'color 0.25s' }}
+            >
+              DM Us
+            </a>
+            <a
+              href="mailto:hello@darjeelingfirst.org"
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--mist-green)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'var(--forest-brown)')}
               style={{ fontSize: '0.83rem', color: 'var(--forest-brown)', textDecoration: 'none', transition: 'color 0.25s' }}
@@ -351,7 +365,8 @@ export function Footer() {
             Ready to show up?
           </p>
           <a
-            href="#invitation"
+            href={IG_DM_URL}
+            target="_blank" rel="noreferrer"
             onMouseEnter={e => (e.currentTarget.style.background = 'var(--warm-amber)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'var(--tea-gold)')}
             style={{
@@ -376,14 +391,13 @@ export function Footer() {
         alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem',
       }}>
         <p style={{ fontSize: '0.72rem', color: 'var(--dark-earth)', letterSpacing: '0.03em' }}>
-          © 2024 Darjeeling First. A community initiative — not a company.
+          © 2025 Darjeeling First. A community initiative — not a company.
         </p>
         <p style={{ fontSize: '0.72rem', color: 'var(--dark-earth)' }}>
           Made with love for the hills. 🌿
         </p>
       </div>
 
-      {/* Responsive */}
       <style>{`
         @media (max-width: 768px) {
           footer > div:first-child {

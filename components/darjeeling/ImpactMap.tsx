@@ -29,56 +29,42 @@ export default function ImpactMap() {
   useEffect(() => {
     if (!inView || !mapRef.current || mapInstance.current) return
 
-    // Dynamically import Leaflet — avoids SSR issues
     const initMap = async () => {
       const L = (await import('leaflet')).default
       await import('leaflet/dist/leaflet.css')
 
-      // ── Custom gold pin icon ─────────────────────────────────────────
       const goldPin = L.divIcon({
         className: '',
         iconAnchor: [10, 28],
         popupAnchor: [0, -30],
         html: `
-          <div style="
-            position: relative;
-            width: 20px;
-            height: 28px;
-            cursor: pointer;
-          ">
-            <!-- Pin body -->
+          <div style="position:relative;width:20px;height:28px;cursor:pointer;">
             <div style="
-              width: 20px;
-              height: 20px;
-              border-radius: 50% 50% 50% 0;
-              background: linear-gradient(135deg, #e8c96a 0%, #c9a84c 50%, #a07828 100%);
-              transform: rotate(-45deg);
-              border: 2px solid rgba(255,255,255,0.3);
-              box-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 0 0 2px rgba(201,168,76,0.3);
+              width:20px;height:20px;
+              border-radius:50% 50% 50% 0;
+              background:linear-gradient(135deg,#e8c96a 0%,#c9a84c 50%,#a07828 100%);
+              transform:rotate(-45deg);
+              border:2px solid rgba(255,255,255,0.3);
+              box-shadow:0 2px 8px rgba(0,0,0,0.5),0 0 0 2px rgba(201,168,76,0.3);
             "></div>
-            <!-- Pin tip -->
             <div style="
-              position: absolute;
-              bottom: 0; left: 50%;
-              transform: translateX(-50%);
-              width: 4px; height: 4px;
-              border-radius: 50%;
-              background: rgba(201,168,76,0.6);
+              position:absolute;bottom:0;left:50%;
+              transform:translateX(-50%);
+              width:4px;height:4px;
+              border-radius:50%;
+              background:rgba(201,168,76,0.6);
             "></div>
-            <!-- Pulse ring -->
             <div style="
-              position: absolute;
-              top: -4px; left: -4px;
-              width: 28px; height: 28px;
-              border-radius: 50%;
-              border: 1.5px solid rgba(201,168,76,0.4);
-              animation: mapPulse 2s ease-out infinite;
+              position:absolute;top:-4px;left:-4px;
+              width:28px;height:28px;
+              border-radius:50%;
+              border:1.5px solid rgba(201,168,76,0.4);
+              animation:mapPulse 2s ease-out infinite;
             "></div>
           </div>
         `,
       })
 
-      // ── Init map ────────────────────────────────────────────────────
       const map = L.map(mapRef.current!, {
         center:          [27.028, 88.263],
         zoom:            14,
@@ -89,76 +75,37 @@ export default function ImpactMap() {
 
       mapInstance.current = map
 
-      // ── Dark tile layer — matches site aesthetic ─────────────────────
-      // Using Stadia dark tiles (free, no API key)
       L.tileLayer(
         'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
-        {
-          maxZoom: 18,
-          attribution: '© Stadia Maps © OpenMapTiles © OpenStreetMap',
-        }
+        { maxZoom: 18, attribution: '© Stadia Maps © OpenMapTiles © OpenStreetMap' }
       ).addTo(map)
 
-      // ── Add zoom control bottom right ────────────────────────────────
       L.control.zoom({ position: 'bottomright' }).addTo(map)
 
-      // ── Plot all markers ─────────────────────────────────────────────
       LOCATIONS.forEach((loc) => {
         const marker = L.marker([loc.lat, loc.lng], { icon: goldPin })
-
         marker.addTo(map)
-
-        // Custom popup — styled to match site
         marker.bindPopup(`
           <div style="
-            background: rgba(12,11,8,0.96);
-            border: 1px solid rgba(201,168,76,0.3);
-            border-radius: 6px;
-            padding: 0.9rem 1.1rem;
-            min-width: 160px;
-            font-family: sans-serif;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            background:rgba(26,18,8,0.97);
+            border:1px solid rgba(201,168,76,0.3);
+            border-radius:6px;
+            padding:0.9rem 1.1rem;
+            min-width:160px;
+            font-family:sans-serif;
+            box-shadow:0 8px 32px rgba(0,0,0,0.6);
           ">
-            <div style="
-              font-size: 0.58rem;
-              letter-spacing: 0.2em;
-              text-transform: uppercase;
-              color: rgba(201,168,76,0.8);
-              margin-bottom: 0.35rem;
-            ">Cleaned</div>
-            <div style="
-              font-size: 1rem;
-              font-weight: 700;
-              color: #f0ece4;
-              margin-bottom: 0.3rem;
-              line-height: 1.2;
-            ">${loc.name}</div>
-            <div style="
-              font-size: 0.72rem;
-              color: rgba(255,255,255,0.4);
-              line-height: 1.5;
-              margin-bottom: 0.6rem;
-            ">${loc.desc}</div>
-            <div style="
-              display: flex;
-              align-items: center;
-              gap: 0.4rem;
-            ">
-              <div style="width: 1rem; height: 1px; background: #c9a84c; opacity: 0.6;"></div>
-              <span style="
-                font-size: 0.6rem;
-                color: rgba(201,168,76,0.7);
-                letter-spacing: 0.1em;
-              ">${loc.drives} drive${loc.drives > 1 ? 's' : ''}</span>
+            <div style="font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(201,168,76,0.8);margin-bottom:0.35rem;">Cleaned</div>
+            <div style="font-size:1rem;font-weight:700;color:#F5EDD8;margin-bottom:0.3rem;line-height:1.2;">${loc.name}</div>
+            <div style="font-size:0.72rem;color:rgba(245,237,216,0.4);line-height:1.5;margin-bottom:0.6rem;">${loc.desc}</div>
+            <div style="display:flex;align-items:center;gap:0.4rem;">
+              <div style="width:1rem;height:1px;background:#c9a84c;opacity:0.6;"></div>
+              <span style="font-size:0.6rem;color:rgba(201,168,76,0.7);letter-spacing:0.1em;">${loc.drives} drive${loc.drives > 1 ? 's' : ''}</span>
             </div>
           </div>
-        `, {
-          closeButton: false,
-          className:   'df-popup',
-        })
+        `, { closeButton: false, className: 'df-popup' })
       })
 
-      // ── Fit map to all markers on load ───────────────────────────────
       const bounds = L.latLngBounds(LOCATIONS.map(l => [l.lat, l.lng]))
       map.fitBounds(bounds, { padding: [40, 40] })
     }
@@ -166,14 +113,11 @@ export default function ImpactMap() {
     initMap()
 
     return () => {
-      if (mapInstance.current) {
-        mapInstance.current.remove()
-        mapInstance.current = null
-      }
+      if (mapInstance.current) { mapInstance.current.remove(); mapInstance.current = null }
     }
   }, [inView])
 
-  const totalDrives   = LOCATIONS.reduce((a, l) => a + l.drives, 0)
+  const totalDrives    = LOCATIONS.reduce((a, l) => a + l.drives, 0)
   const totalLocations = LOCATIONS.length
 
   return (
@@ -182,7 +126,7 @@ export default function ImpactMap() {
       id="impact-map"
       style={{
         position:   'relative',
-        background: '#0a0a08',
+        background: '#1A1208',
         padding:    'clamp(5rem, 10vw, 9rem) 0',
         overflow:   'hidden',
       }}
@@ -227,7 +171,7 @@ export default function ImpactMap() {
             fontFamily:    'var(--font-display, Georgia, serif)',
             fontSize:      'clamp(2rem, 5vw, 4rem)',
             fontWeight:    900,
-            color:         '#f0ece4',
+            color:         '#F5EDD8',
             lineHeight:    1.0,
             letterSpacing: '-0.02em',
             margin:        0,
@@ -238,7 +182,6 @@ export default function ImpactMap() {
             </em>
           </h2>
 
-          {/* Quick stats below heading */}
           <div style={{
             display:   'flex',
             gap:       'clamp(2rem, 5vw, 4rem)',
@@ -256,12 +199,12 @@ export default function ImpactMap() {
                 transition={{ duration: 0.7, delay: 0.2 + i * 0.1 }}
               >
                 <div style={{
-                  fontFamily:    'var(--font-display, Georgia, serif)',
-                  fontSize:      'clamp(1.8rem, 3.5vw, 2.8rem)',
-                  fontWeight:    900,
-                  color:         '#c9a84c',
-                  lineHeight:    1,
-                  marginBottom:  '0.3rem',
+                  fontFamily:   'var(--font-display, Georgia, serif)',
+                  fontSize:     'clamp(1.8rem, 3.5vw, 2.8rem)',
+                  fontWeight:   900,
+                  color:        '#c9a84c',
+                  lineHeight:   1,
+                  marginBottom: '0.3rem',
                 }}>
                   {s.val}+
                 </div>
@@ -270,7 +213,7 @@ export default function ImpactMap() {
                   fontSize:      '0.65rem',
                   letterSpacing: '0.15em',
                   textTransform: 'uppercase',
-                  color:         'rgba(255,255,255,0.3)',
+                  color:         'rgba(245,237,216,0.35)',
                 }}>
                   {s.label}
                 </div>
@@ -289,26 +232,25 @@ export default function ImpactMap() {
             borderRadius: '8px',
             overflow:     'hidden',
             border:       '1px solid rgba(201,168,76,0.15)',
-            boxShadow:    '0 32px 80px rgba(0,0,0,0.6)',
+            boxShadow:    '0 32px 80px rgba(0,0,0,0.5)',
           }}
         >
-          {/* Map */}
           <div
             ref={mapRef}
             style={{
-              width:  '100%',
-              height: 'clamp(400px, 60vh, 620px)',
-              background: '#0d0d0b',
+              width:      '100%',
+              height:     'clamp(400px, 60vh, 620px)',
+              background: '#1A1208',
             }}
           />
 
-          {/* Legend overlay — bottom left */}
+          {/* Legend overlay */}
           <div style={{
             position:       'absolute',
             bottom:         '1.2rem',
             left:           '1.2rem',
             zIndex:         1000,
-            background:     'rgba(10,10,8,0.88)',
+            background:     'rgba(26,18,8,0.92)',
             backdropFilter: 'blur(12px)',
             border:         '1px solid rgba(201,168,76,0.15)',
             borderRadius:   '6px',
@@ -317,7 +259,6 @@ export default function ImpactMap() {
             alignItems:     'center',
             gap:            '0.6rem',
           }}>
-            {/* Mini gold pin */}
             <div style={{
               width:        10,
               height:       10,
@@ -331,28 +272,28 @@ export default function ImpactMap() {
               fontSize:      '0.58rem',
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
-              color:         'rgba(255,255,255,0.45)',
+              color:         'rgba(245,237,216,0.45)',
             }}>
               Cleaned location
             </span>
           </div>
 
-          {/* Scroll to zoom hint */}
+          {/* Hint */}
           <div style={{
             position:       'absolute',
             top:            '1rem',
             right:          '1rem',
             zIndex:         1000,
-            background:     'rgba(10,10,8,0.75)',
+            background:     'rgba(26,18,8,0.78)',
             backdropFilter: 'blur(8px)',
-            border:         '1px solid rgba(255,255,255,0.06)',
+            border:         '1px solid rgba(201,168,76,0.08)',
             borderRadius:   '4px',
             padding:        '0.4rem 0.75rem',
             fontFamily:     'var(--font-body, sans-serif)',
             fontSize:       '0.55rem',
             letterSpacing:  '0.15em',
             textTransform:  'uppercase',
-            color:          'rgba(255,255,255,0.22)',
+            color:          'rgba(245,237,216,0.22)',
           }}>
             Click pins to explore
           </div>
@@ -366,7 +307,7 @@ export default function ImpactMap() {
           style={{
             fontFamily:    'var(--font-body, sans-serif)',
             fontSize:      '0.68rem',
-            color:         'rgba(255,255,255,0.2)',
+            color:         'rgba(245,237,216,0.2)',
             letterSpacing: '0.05em',
             marginTop:     '1.2rem',
             textAlign:     'center',
@@ -392,17 +333,17 @@ export default function ImpactMap() {
           display: none !important;
         }
         .leaflet-control-zoom a {
-          background: rgba(12,11,8,0.9) !important;
+          background: rgba(26,18,8,0.92) !important;
           border-color: rgba(201,168,76,0.2) !important;
           color: rgba(201,168,76,0.8) !important;
         }
         .leaflet-control-zoom a:hover {
-          background: rgba(30,25,10,0.95) !important;
+          background: rgba(61,43,14,0.95) !important;
           color: #c9a84c !important;
         }
         .leaflet-control-attribution {
-          background: rgba(0,0,0,0.5) !important;
-          color: rgba(255,255,255,0.2) !important;
+          background: rgba(26,18,8,0.6) !important;
+          color: rgba(245,237,216,0.2) !important;
           font-size: 9px !important;
         }
         @keyframes mapPulse {

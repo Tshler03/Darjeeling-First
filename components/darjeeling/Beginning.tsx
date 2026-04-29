@@ -6,7 +6,6 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
-// ── Story from Mingma's PDF ──────────────────────────────────────────────────
 const CARDS = [
   {
     number: '01',
@@ -33,7 +32,6 @@ const CARDS = [
     image: 'https://assets.telegraphindia.com/telegraph/2024/Sep/1725513081_new-project-13.jpg',
   },
 ]
-// ────────────────────────────────────────────────────────────────────────────
 
 const SLOT_COLUMNS = [
   { left: '2%',  rotate: -1.5 },
@@ -151,43 +149,59 @@ export default function Beginning() {
 
   return (
     <>
-      {/*
-        ── MOBILE-ONLY CSS ──────────────────────────────────────────────────
-        PC: zero changes. These rules only fire at ≤640px.
-
-        1. Active reading card: clamp(300px,...) overridden to 92vw
-           so the full story is readable centred on phone screen.
-
-        2. Filed slot cards final state: image fills 100% of card,
-           body/detail hidden, title overlay shown at bottom.
-           This only affects how the cards LOOK when stacked —
-           the GSAP animation still runs identically.
-        ────────────────────────────────────────────────────────────────────
-      */}
       <style>{`
-        @media (max-width: 640px) {
-
-          /* ── 1. Active card: full readable width on mobile ── */
-          .beg-active-card {
-            width: 92vw !important;
-          }
-
-          /* ── 2. Filed slot cards: image fills card, body gone ── */
-          .beg-slot-img   { height: 100% !important; }
-          .beg-slot-body  { display: none !important; }
-          .beg-slot-title { display: flex !important; }
-        }
-
-        /* Title overlay — hidden on desktop, shown on mobile via above */
+        /* ── Title overlay — hidden on desktop ── */
         .beg-slot-title {
           display: none;
           position: absolute;
           bottom: 0; left: 0; right: 0;
-          padding: 0.7rem 0.9rem 0.9rem;
+          padding: 0.6rem 0.9rem 0.8rem;
           background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, transparent 100%);
           flex-direction: column;
-          gap: 0.22rem;
+          gap: 0.18rem;
           pointer-events: none;
+        }
+
+        /* ── MOBILE ── */
+        @media (max-width: 640px) {
+
+          /* Active reading card: full width */
+          .beg-active-card {
+            width: 88vw !important;
+          }
+
+          /* Each slot card: full width, stacked vertically */
+          .beg-slot-card {
+            position: absolute !important;
+            left: 6vw !important;
+            right: 6vw !important;
+            width: 88vw !important;
+            transform: rotate(0deg) !important;
+          }
+
+          /* Stack positions: top / middle / bottom */
+          .beg-slot-card-0 {
+            top: 2vh !important;
+            bottom: auto !important;
+            height: 28vh !important;
+          }
+          .beg-slot-card-1 {
+            top: calc(2vh + 28vh + 2vh) !important;
+            bottom: auto !important;
+            height: 28vh !important;
+          }
+          .beg-slot-card-2 {
+            top: calc(2vh + 28vh + 2vh + 28vh + 2vh) !important;
+            bottom: auto !important;
+            height: 28vh !important;
+          }
+
+          /* Image fills full card height */
+          .beg-slot-img   { height: 100% !important; }
+          /* Hide text body */
+          .beg-slot-body  { display: none !important; }
+          /* Show title overlay */
+          .beg-slot-title { display: flex !important; }
         }
       `}</style>
 
@@ -199,12 +213,9 @@ export default function Beginning() {
         <div
           ref={stickyRef}
           style={{
-            position: 'sticky',
-            top: 0,
-            width: '100%',
-            height: '100vh',
-            overflow: 'hidden',
-            background: '#0d0d0b',
+            position: 'sticky', top: 0,
+            width: '100%', height: '100vh',
+            overflow: 'hidden', background: '#0d0d0b',
           }}
         >
           {/* Background */}
@@ -240,6 +251,7 @@ export default function Beginning() {
             <div
               key={i}
               ref={el => { slotRefs.current[i] = el }}
+              className={`beg-slot-card beg-slot-card-${i}`}
               style={{
                 position: 'absolute',
                 left: SLOT_COLUMNS[i].left,
@@ -262,7 +274,6 @@ export default function Beginning() {
                 flexDirection: 'column',
                 position: 'relative',
               }}>
-                {/* Image — desktop: 38%, mobile: 100% via .beg-slot-img */}
                 <div
                   className="beg-slot-img"
                   style={{ height: '38%', flexShrink: 0, position: 'relative', overflow: 'hidden' }}
@@ -275,20 +286,17 @@ export default function Beginning() {
                       filter: 'brightness(0.55) saturate(0.85)',
                     }}
                   />
-                  {/* Number */}
                   <div style={{
                     position: 'absolute', top: '1rem', left: '1.2rem',
                     fontFamily: 'var(--font-display, serif)',
-                    fontSize: 'clamp(2rem, 3.5vw, 3rem)',
-                    fontWeight: 900,
-                    color: 'rgba(201,168,76,0.95)',
-                    lineHeight: 1,
+                    fontSize: 'clamp(2rem, 3.5vw, 3rem)', fontWeight: 900,
+                    color: 'rgba(201,168,76,0.95)', lineHeight: 1,
                     textShadow: '0 2px 12px rgba(0,0,0,0.6)',
                   }}>
                     {card.number}
                   </div>
 
-                  {/* Mobile title overlay — inside image, shown only on mobile */}
+                  {/* Mobile title overlay */}
                   <div className="beg-slot-title">
                     <span style={{
                       fontFamily: 'var(--font-body, sans-serif)',
@@ -307,23 +315,16 @@ export default function Beginning() {
                   </div>
                 </div>
 
-                {/* Body — desktop visible, mobile hidden via .beg-slot-body */}
                 <div
                   className="beg-slot-body"
                   style={{
-                    flex: 1,
-                    padding: 'clamp(1rem, 2vw, 1.6rem)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    overflow: 'hidden',
+                    flex: 1, padding: 'clamp(1rem, 2vw, 1.6rem)',
+                    display: 'flex', flexDirection: 'column',
+                    justifyContent: 'space-between', overflow: 'hidden',
                   }}
                 >
                   <div>
-                    <div style={{
-                      display: 'flex', alignItems: 'center', gap: '0.6rem',
-                      marginBottom: '0.7rem',
-                    }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.7rem' }}>
                       <div style={{ width: '1.2rem', height: '1px', background: '#c9a84c', opacity: 0.6 }} />
                       <span style={{
                         fontFamily: 'var(--font-body, sans-serif)',
@@ -335,9 +336,8 @@ export default function Beginning() {
                     </div>
                     <h3 style={{
                       fontFamily: 'var(--font-display, serif)',
-                      fontSize: 'clamp(1rem, 1.6vw, 1.35rem)',
-                      fontWeight: 800, color: '#ffffff',
-                      lineHeight: 1.2, margin: '0 0 0.9rem',
+                      fontSize: 'clamp(1rem, 1.6vw, 1.35rem)', fontWeight: 800,
+                      color: '#ffffff', lineHeight: 1.2, margin: '0 0 0.9rem',
                       letterSpacing: '-0.01em',
                     }}>
                       {card.heading}
@@ -345,24 +345,17 @@ export default function Beginning() {
                     <p style={{
                       fontFamily: 'var(--font-body, sans-serif)',
                       fontSize: 'clamp(0.72rem, 1.1vw, 0.85rem)',
-                      color: 'rgba(255,255,255,0.52)',
-                      lineHeight: 1.75, margin: 0,
+                      color: 'rgba(255,255,255,0.52)', lineHeight: 1.75, margin: 0,
                     }}>
                       {card.body}
                     </p>
                   </div>
                   <div>
-                    <div style={{
-                      width: '1.8rem', height: '1px',
-                      background: '#c9a84c', opacity: 0.35,
-                      marginBottom: '0.75rem',
-                    }} />
+                    <div style={{ width: '1.8rem', height: '1px', background: '#c9a84c', opacity: 0.35, marginBottom: '0.75rem' }} />
                     <p style={{
                       fontFamily: 'var(--font-body, sans-serif)',
                       fontSize: 'clamp(0.68rem, 1vw, 0.78rem)',
-                      color: 'rgba(201,168,76,0.65)',
-                      lineHeight: 1.55, margin: 0,
-                      fontStyle: 'italic',
+                      color: 'rgba(201,168,76,0.65)', lineHeight: 1.55, margin: 0, fontStyle: 'italic',
                     }}>
                       {card.detail}
                     </p>
@@ -374,36 +367,30 @@ export default function Beginning() {
               <div
                 ref={el => { glowRefs.current[i] = el }}
                 style={{
-                  position: 'absolute', inset: '-2px',
-                  borderRadius: '9px',
+                  position: 'absolute', inset: '-2px', borderRadius: '9px',
                   border: '2px solid rgba(201,168,76,0.9)',
                   boxShadow: '0 0 20px rgba(201,168,76,0.55), 0 0 50px rgba(201,168,76,0.2), inset 0 0 24px rgba(201,168,76,0.06)',
-                  pointerEvents: 'none',
-                  willChange: 'opacity',
+                  pointerEvents: 'none', willChange: 'opacity',
                 }}
               />
             </div>
           ))}
 
           {/* ── Active reading card ── */}
-          {/* mobile: .beg-active-card overrides width to 92vw */}
           <div
             ref={activeRef}
             className="beg-active-card"
             style={{
-              position: 'absolute',
-              top: '50%', left: '50%',
+              position: 'absolute', top: '50%', left: '50%',
               transform: 'translate(-50%, -50%)',
-              zIndex: 8,
-              width: 'clamp(300px, 38vw, 480px)',
+              zIndex: 8, width: 'clamp(300px, 38vw, 480px)',
               willChange: 'opacity, transform',
             }}
           >
             <div style={{
               background: 'rgba(12,11,8,0.9)',
               border: '1px solid rgba(201,168,76,0.22)',
-              borderRadius: '8px',
-              overflow: 'hidden',
+              borderRadius: '8px', overflow: 'hidden',
               backdropFilter: 'blur(20px)',
               boxShadow: '0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(201,168,76,0.08)',
             }}>
@@ -438,33 +425,26 @@ export default function Beginning() {
                     {CARDS[0].label}
                   </span>
                 </div>
-
                 <h3 className="ac-heading" style={{
                   fontFamily: 'var(--font-display, serif)',
-                  fontSize: 'clamp(1.3rem, 2.5vw, 1.9rem)',
-                  fontWeight: 800, color: '#ffffff',
-                  lineHeight: 1.15, margin: '0 0 1rem',
+                  fontSize: 'clamp(1.3rem, 2.5vw, 1.9rem)', fontWeight: 800,
+                  color: '#ffffff', lineHeight: 1.15, margin: '0 0 1rem',
                   letterSpacing: '-0.01em',
                 }}>
                   {CARDS[0].heading}
                 </h3>
-
                 <p className="ac-body" style={{
                   fontFamily: 'var(--font-body, sans-serif)',
                   fontSize: 'clamp(0.8rem, 1.3vw, 0.95rem)',
-                  color: 'rgba(255,255,255,0.55)',
-                  lineHeight: 1.75, margin: '0 0 1.2rem',
+                  color: 'rgba(255,255,255,0.55)', lineHeight: 1.75, margin: '0 0 1.2rem',
                 }}>
                   {CARDS[0].body}
                 </p>
-
                 <div style={{ width: '2rem', height: '1px', background: '#c9a84c', opacity: 0.4, marginBottom: '0.9rem' }} />
-
                 <p className="ac-detail" style={{
                   fontFamily: 'var(--font-body, sans-serif)',
                   fontSize: 'clamp(0.72rem, 1.1vw, 0.82rem)',
-                  color: 'rgba(201,168,76,0.7)',
-                  lineHeight: 1.6, margin: 0, fontStyle: 'italic',
+                  color: 'rgba(201,168,76,0.7)', lineHeight: 1.6, margin: 0, fontStyle: 'italic',
                 }}>
                   {CARDS[0].detail}
                 </p>

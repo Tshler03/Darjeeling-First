@@ -29,7 +29,6 @@ const CORE = [
   },
 ]
 
-// Instagram-style community photo strip
 const COMMUNITY = [
   '/Comment1.png',
   '/Comment2.png',
@@ -69,9 +68,11 @@ function PortraitCard({
         position: 'relative',
         overflow: 'hidden',
         background: 'var(--dark-earth)',
-        // Middle card is taller — breaks the grid rhythm intentionally
         marginTop: person.tall ? '-3rem' : '0',
         cursor: 'default',
+        // mobile swipe: each card is a fixed-width snap item
+        scrollSnapAlign: 'start',
+        flexShrink: 0,
       }}
     >
       {/* Image */}
@@ -93,19 +94,13 @@ function PortraitCard({
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         />
 
-        {/* Quote overlaid on image — slides up on hover */}
+        {/* Quote overlaid on image */}
         <motion.div
-          animate={{
-            opacity: hovered ? 1 : 0,
-            y: hovered ? 0 : 20,
-          }}
+          animate={{ opacity: hovered ? 1 : 0, y: hovered ? 0 : 20 }}
           transition={{ duration: 0.4 }}
           style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '2rem',
             background: 'rgba(26,18,8,0.65)',
             backdropFilter: 'blur(4px)',
@@ -124,17 +119,14 @@ function PortraitCard({
           </p>
         </motion.div>
 
-        {/* Location tag — always visible */}
+        {/* Location tag */}
         <div style={{
-          position: 'absolute',
-          top: '1rem', left: '1rem',
+          position: 'absolute', top: '1rem', left: '1rem',
           background: 'rgba(26,18,8,0.8)',
           backdropFilter: 'blur(8px)',
           padding: '0.25rem 0.7rem',
-          fontSize: '0.58rem',
-          fontWeight: 700,
-          letterSpacing: '0.15em',
-          textTransform: 'uppercase',
+          fontSize: '0.58rem', fontWeight: 700,
+          letterSpacing: '0.15em', textTransform: 'uppercase',
           color: 'var(--forest-brown)',
         }}>
           {person.location}
@@ -164,19 +156,16 @@ function PortraitCard({
 
 // ─── Main section ──────────────────────────────────────────────────────────
 export default function People() {
-  const sectionRef = useRef<HTMLDivElement>(null)
-  const headerRef  = useRef<HTMLDivElement>(null)
-  const stripRef   = useRef<HTMLDivElement>(null)
-  const inView     = useInView(headerRef, { once: true, margin: '-80px' })
-  const stripInView = useInView(stripRef, { once: true, margin: '-60px' })
+  const sectionRef  = useRef<HTMLDivElement>(null)
+  const headerRef   = useRef<HTMLDivElement>(null)
+  const stripRef    = useRef<HTMLDivElement>(null)
+  const inView      = useInView(headerRef, { once: true, margin: '-80px' })
+  const stripInView = useInView(stripRef,  { once: true, margin: '-60px' })
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start end', 'end start'],
   })
-
-  // Community strip drifts left as you scroll
-  const stripX = useTransform(scrollYProgress, [0.3, 1], ['0%', '-12%'])
 
   return (
     <section
@@ -189,7 +178,7 @@ export default function People() {
         padding: 'clamp(5rem, 10vw, 10rem) 0',
       }}
     >
-      {/* Subtle bg texture — noise-like gradient */}
+      {/* Subtle bg texture */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: 0,
         background:
@@ -207,28 +196,16 @@ export default function People() {
         {/* ── HEADER ── */}
         <div
           ref={headerRef}
-          style={{
-            textAlign: 'center',
-            maxWidth: '680px',
-            margin: '0 auto clamp(4rem, 8vw, 7rem)',
-          }}
+          style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto clamp(4rem, 8vw, 7rem)' }}
         >
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8 }}
-            style={{
-              display: 'flex', alignItems: 'center',
-              justifyContent: 'center', gap: '0.8rem',
-              marginBottom: '1.5rem',
-            }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', marginBottom: '1.5rem' }}
           >
             <div style={{ width: 28, height: 1, background: 'var(--tea-gold)' }} />
-            <span style={{
-              fontSize: '0.62rem', fontWeight: 600,
-              letterSpacing: '0.22em', textTransform: 'uppercase',
-              color: 'var(--tea-gold)',
-            }}>
+            <span style={{ fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--tea-gold)' }}>
               Who They Are
             </span>
             <div style={{ width: 28, height: 1, background: 'var(--tea-gold)' }} />
@@ -239,32 +216,22 @@ export default function People() {
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.9, delay: 0.1 }}
             style={{
-              fontFamily: 'var(--ff-display)',
-              fontWeight: 900,
-              fontSize: 'clamp(2.4rem, 5vw, 4.5rem)',
-              lineHeight: 1.0,
-              letterSpacing: '-0.025em',
-              color: 'var(--cream)',
-              marginBottom: '1.4rem',
+              fontFamily: 'var(--ff-display)', fontWeight: 900,
+              fontSize: 'clamp(2.4rem, 5vw, 4.5rem)', lineHeight: 1.0,
+              letterSpacing: '-0.025em', color: 'var(--cream)', marginBottom: '1.4rem',
             }}
           >
-            Same streets.{' '}
-            <em style={{ color: 'var(--warm-amber)', fontStyle: 'italic' }}>
-              Same school.
-            </em>
+            Same streets.
             <br />
-            Same rage.
+            <em style={{ color: 'var(--warm-amber)', fontStyle: 'italic' }}>Same school.</em>
+            <br />Same rage.
           </motion.h2>
 
           <motion.p
             initial={{ opacity: 0 }}
             animate={inView ? { opacity: 1 } : {}}
             transition={{ duration: 0.8, delay: 0.3 }}
-            style={{
-              fontSize: 'clamp(0.88rem, 1.2vw, 1rem)',
-              lineHeight: 1.8,
-              color: 'var(--mist-green)',
-            }}
+            style={{ fontSize: 'clamp(0.88rem, 1.2vw, 1rem)', lineHeight: 1.8, color: 'var(--mist-green)' }}
           >
             Not environmentalists by training. People from Darjeeling who
             grew up hiking these trails, drinking this tea, breathing this
@@ -272,14 +239,11 @@ export default function People() {
           </motion.p>
         </div>
 
-        {/* ── PORTRAIT GRID ── */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 'clamp(1rem, 2vw, 1.5rem)',
-          alignItems: 'start',
-          marginBottom: 'clamp(4rem, 8vw, 7rem)',
-        }}>
+        {/* ── CARDS — desktop: 3-col grid / mobile: horizontal swipe ── */}
+        <div
+          className="people-cards"
+          style={{ marginBottom: 'clamp(4rem, 8vw, 7rem)' }}
+        >
           {CORE.map((person, i) => (
             <PortraitCard key={i} person={person} index={i} />
           ))}
@@ -299,45 +263,32 @@ export default function People() {
           }}
         />
 
-        {/* ── COMMUNITY STRIP — drifting photo row ── */}
+        {/* ── COMMUNITY STRIP ── */}
         <div ref={stripRef}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={stripInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8 }}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 'clamp(1.5rem, 3vw, 2.5rem)',
-              flexWrap: 'wrap',
-              gap: '1rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              marginBottom: 'clamp(1.5rem, 3vw, 2.5rem)', flexWrap: 'wrap', gap: '1rem',
             }}
           >
-            <p style={{
-              fontSize: 'clamp(0.82rem, 1vw, 0.95rem)',
-              color: 'var(--forest-brown)',
-              fontStyle: 'italic',
-              maxWidth: '420px',
-              lineHeight: 1.7,
-            }}>
+            <p style={{ fontSize: 'clamp(0.82rem, 1vw, 0.95rem)', color: 'var(--forest-brown)', fontStyle: 'italic', maxWidth: '420px', lineHeight: 1.7 }}>
               1,702 people follow this movement on Instagram.
               Every one of them found it because someone showed up.
             </p>
             <a
-              href="https://instagram.com"
+              href="https://instagram.com/darjeeelingfirst"
               target="_blank"
               rel="noreferrer"
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--warm-amber)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'var(--tea-gold)')}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
-                fontSize: '0.72rem', fontWeight: 600,
-                letterSpacing: '0.12em', textTransform: 'uppercase',
-                color: 'var(--tea-gold)',
-                borderBottom: '1px solid rgba(200,151,58,0.3)',
-                paddingBottom: '2px',
-                transition: 'color 0.25s',
+                fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase',
+                color: 'var(--tea-gold)', borderBottom: '1px solid rgba(200,151,58,0.3)',
+                paddingBottom: '2px', transition: 'color 0.25s',
               }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -345,38 +296,25 @@ export default function People() {
                 <circle cx="12" cy="12" r="5"/>
                 <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
               </svg>
-              @darjeelingfirst
+              @darjeeelingfirst
             </a>
           </motion.div>
 
-          {/* Drifting photo strip */}
           <div style={{
             overflow: 'hidden',
-            WebkitMaskImage:
-              'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
-            maskImage:
-              'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
+            maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
           }}>
-            <motion.div
-              style={{
-                display: 'flex',
-                gap: 'clamp(0.75rem, 1.5vw, 1rem)',
-                x: stripX,
-                willChange: 'transform',
-              }}
-            >
-              {COMMUNITY.map((src, i) => (
-                <motion.div
+            <div className="community-track">
+              {/* Duplicate items for seamless loop */}
+              {[...COMMUNITY, ...COMMUNITY].map((src, i) => (
+                <a
                   key={i}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={stripInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.8, delay: i * 0.07 }}
-                  whileHover={{ scale: 1.03, zIndex: 10 }}
-                  style={{
-                    flexShrink: 0,
-                    overflow: 'hidden',
-                    position: 'relative',
-                  }}
+                  href="https://www.instagram.com/darjeeelingfirst/"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ flexShrink: 0, overflow: 'hidden', position: 'relative', display: 'block', textDecoration: 'none' }}
+                  className="community-item"
                 >
                   <img
                     src={src}
@@ -384,57 +322,90 @@ export default function People() {
                     style={{
                       width: 'clamp(120px, 18vw, 220px)',
                       aspectRatio: i % 2 === 0 ? '1/1' : '4/5',
-                      objectFit: 'cover',
-                      display: 'block',
-                      filter: 'saturate(0.6) brightness(0.8)',
-                      transition: 'filter 0.4s',
-                    }}
-                    onMouseEnter={e => {
-                      (e.currentTarget as HTMLImageElement).style.filter =
-                        'saturate(0.9) brightness(0.9)'
-                    }}
-                    onMouseLeave={e => {
-                      (e.currentTarget as HTMLImageElement).style.filter =
-                        'saturate(0.6) brightness(0.8)'
+                      objectFit: 'cover', display: 'block',
+                      filter: 'saturate(0.6) brightness(0.8)', transition: 'filter 0.4s',
                     }}
                   />
-                  {/* Instagram-style corner indicator */}
-                  <div style={{
-                    position: 'absolute',
-                    top: '0.5rem', right: '0.5rem',
-                    opacity: 0.5,
-                  }}>
+                  <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', opacity: 0.5 }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--cream)" strokeWidth="1.5">
                       <rect x="2" y="2" width="20" height="20" rx="5"/>
                       <circle cx="12" cy="12" r="5"/>
                     </svg>
                   </div>
-                </motion.div>
+                </a>
               ))}
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* ── RESPONSIVE STYLES ── */}
       <style>{`
+        /* Desktop: 3-col grid */
+        .people-cards {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: clamp(1rem, 2vw, 1.5rem);
+          align-items: start;
+        }
+
+        /* Tablet: 2-col grid */
         @media (max-width: 900px) {
-          #people-grid {
-            grid-template-columns: 1fr 1fr !important;
+          .people-cards {
+            grid-template-columns: 1fr 1fr;
           }
-          #people-grid > div:last-child {
+          .people-cards > div:last-child {
             grid-column: 1 / -1;
             margin-top: 0 !important;
           }
         }
 
-        @media (max-width: 560px) {
-          #people-grid {
-            grid-template-columns: 1fr !important;
+        /* Mobile: horizontal swipe row */
+        @media (max-width: 640px) {
+          .people-cards {
+            display: flex !important;
+            flex-direction: row !important;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            align-items: flex-start;
+            gap: 12px !important;
+            padding-bottom: 1rem;
+            margin-left: calc(-1 * var(--gutter, 1.5rem));
+            margin-right: calc(-1 * var(--gutter, 1.5rem));
+            padding-left: var(--gutter, 1.5rem);
+            padding-right: var(--gutter, 1.5rem);
+            scrollbar-width: none;
+            -ms-overflow-style: none;
           }
-          #people-grid > div {
+          .people-cards::-webkit-scrollbar {
+            display: none;
+          }
+          .people-cards > div {
+            min-width: 82vw !important;
+            width: 82vw !important;
+            flex-shrink: 0 !important;
+            scroll-snap-align: start;
             margin-top: 0 !important;
           }
+        }
+
+        /* Auto-scrolling community strip */
+        @keyframes communityScroll {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .community-track {
+          display: flex;
+          gap: clamp(0.75rem, 1.5vw, 1rem);
+          width: max-content;
+          animation: communityScroll 28s linear infinite;
+        }
+        .community-track:hover {
+          animation-play-state: paused;
+        }
+        .community-item img:hover {
+          filter: saturate(0.9) brightness(0.9) !important;
         }
       `}</style>
     </section>

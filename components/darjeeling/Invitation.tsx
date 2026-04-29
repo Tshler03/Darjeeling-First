@@ -12,7 +12,8 @@ const WAYS = [
     sub: 'Volunteer',
     body: 'Join a Sunday cleanup drive. Gloves provided. Just bring yourself and whoever you can drag along.',
     cta: 'DM us on Instagram',
-    href: 'https://instagram.com/darjeelingfirst',
+    // Opens IG DMs with a pre-filled message ready to send
+    href: 'https://ig.me/m/darjeeelingfirst',
     external: true,
     primary: true,
   },
@@ -22,8 +23,8 @@ const WAYS = [
     title: 'Spread It',
     sub: 'Share the story',
     body: 'Share our posts. Tell your people. Every share puts Darjeeling in front of someone who might just show up next Sunday.',
-    cta: 'Follow @darjeelingfirst',
-    href: 'https://instagram.com/darjeelingfirst',
+    cta: 'Follow @darjeeelingfirst',
+    href: 'https://www.instagram.com/darjeeelingfirst/',
     external: true,
     primary: false,
   },
@@ -34,8 +35,8 @@ const WAYS = [
     sub: 'Organise locally',
     body: "Start a cleanup in your neighbourhood, school, or college. You don't need permission — just a group chat and a Sunday morning.",
     cta: 'Get in touch',
-    href: 'mailto:hello@darjeelingfirst.org',
-    external: false,
+    href: 'https://www.instagram.com/darjeeelingfirst/',
+    external: true,
     primary: false,
   },
 ]
@@ -70,7 +71,6 @@ function WayCard({ way, index }: { way: typeof WAYS[0]; index: number }) {
         flexDirection: 'column',
         gap: '1.2rem',
         transition: 'border-color 0.4s, background 0.4s',
-        // Mobile: fixed width so cards are consistent in the scroll row
         flexShrink: 0,
       }}
     >
@@ -129,8 +129,8 @@ function WayCard({ way, index }: { way: typeof WAYS[0]; index: number }) {
       {/* CTA */}
       <a
         href={way.href}
-        target={way.external ? '_blank' : undefined}
-        rel={way.external ? 'noreferrer' : undefined}
+        target="_blank"
+        rel="noreferrer"
         onMouseEnter={e => {
           e.currentTarget.style.background = way.primary ? 'var(--warm-amber)' : 'transparent'
           e.currentTarget.style.color = way.primary ? 'var(--midnight)' : 'var(--warm-amber)'
@@ -309,12 +309,6 @@ export default function Invitation() {
         </div>
 
         {/* ── THREE WAYS ── */}
-        {/*
-          Desktop: CSS grid, 3 equal columns — unchanged.
-          Mobile: horizontal scroll container, each card is 82vw wide,
-                  snap-scrolls so the next card peeks at the edge (swipe hint).
-                  No JS needed — pure CSS scroll snap.
-        */}
         <div className="ways-grid" style={{ marginBottom: 'clamp(4rem, 8vw, 6rem)' }}>
           {WAYS.map((way, i) => (
             <WayCard key={i} way={way} index={i} />
@@ -350,7 +344,7 @@ export default function Invitation() {
           </p>
 
           <a
-            href="https://instagram.com/darjeelingfirst"
+            href="https://www.instagram.com/darjeeelingfirst/"
             target="_blank"
             rel="noreferrer"
             onMouseEnter={e => (e.currentTarget.style.background = 'var(--warm-amber)')}
@@ -376,14 +370,12 @@ export default function Invitation() {
 
       {/* ── RESPONSIVE ── */}
       <style>{`
-        /* ── Desktop: 3-column grid — unchanged ── */
         .ways-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: clamp(1rem, 2vw, 1.5rem);
         }
 
-        /* ── Tablet: 2 cols, first card full width ── */
         @media (max-width: 900px) {
           .ways-grid {
             grid-template-columns: 1fr 1fr;
@@ -393,31 +385,24 @@ export default function Invitation() {
           }
         }
 
-        /* ── Mobile: horizontal swipe row ── */
         @media (max-width: 640px) {
           .ways-grid {
-            /* Switch from grid to flex horizontal scroll */
             display: flex !important;
             flex-direction: row !important;
             overflow-x: auto;
             overflow-y: visible;
             gap: 12px !important;
-            /* Scroll snap — each card snaps into place */
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
-            /* Pull it edge-to-edge ignoring the section padding */
             margin-left: calc(-1 * var(--gutter, 1.5rem));
             margin-right: calc(-1 * var(--gutter, 1.5rem));
             padding-left: var(--gutter, 1.5rem);
             padding-right: var(--gutter, 1.5rem);
-            /* Hide scrollbar — swipe gesture only */
             scrollbar-width: none;
           }
           .ways-grid::-webkit-scrollbar {
             display: none;
           }
-          /* Each card: 82vw wide so the next card peeks 
-             giving a clear swipe hint */
           .ways-grid > div {
             min-width: 82vw !important;
             width: 82vw !important;

@@ -30,14 +30,7 @@ const IMAGES = [
     src: 'https://tse2.mm.bing.net/th/id/OIP.9ELXw98q0ieQFBmHo2owCgHaEo?pid=Api&P=0&h=180',
     location: 'Himalayan Slope, Darjeeling',
   },
-  {
-    src: 'https://thedarjeelingchronicle.com/wp-content/uploads/2020/10/Trash-Talking-Plastic-Waste.jpeg',
-    location: 'Valley Dump, Darjeeling',
-  },
-  {
-    src: 'https://thedarjeelingchronicle.com/wp-content/uploads/2019/08/Darjeeling_Dumpyard1-1024x768.jpeg',
-    location: 'Dumpyard Outskirts, Darjeeling',
-  },
+  
 ]
 // ────────────────────────────────────────────────────────────────────────────
 
