@@ -76,9 +76,9 @@ export default function ImpactMap() {
       mapInstance.current = map
 
       L.tileLayer(
-        'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
-        { maxZoom: 18, attribution: '© Stadia Maps © OpenMapTiles © OpenStreetMap' }
-      ).addTo(map)
+  'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  { maxZoom: 19, attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd' }
+).addTo(map)
 
       L.control.zoom({ position: 'bottomright' }).addTo(map)
 
